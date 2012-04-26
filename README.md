@@ -6,7 +6,7 @@ hope they won't update XML format during I'm writing this.
 
 - parser for  SRA Metadata XML, just for SRA XML ver. 1.3
 
-## SRA Metafata API
+## SRA Metadata API
 
 - get SRA ID related to request
   - query "submission id for DRR000001" => "DRA000001"
