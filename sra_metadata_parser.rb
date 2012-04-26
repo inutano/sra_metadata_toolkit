@@ -244,16 +244,180 @@ class ExperimentParser
   end
 end
 
-require "ap"
+class SampleParser
+  def initialize(id, xml)
+    @nkgr = Nokogiri::XML(open(xml))
+    @sample = @nkgr.css("SAMPLE").select{|n| n.attr("accession") == id }.first
+  end
+  
+  # SAMPLE DETAIL
+  def get_alias
+    @sample.attr("alias").to_s
+  end
+  
+  def sample_title
+    @sample.css("TITLE").inner_text
+  end
+  
+  def sample_description
+    @sample.css("DESCRIPTION").inner_text
+  end
+  
+  def sample_detail
+    { :sample_title => self.sample_title,
+      :sample_description => self.sample_description }
+  end
+  
+  # ORGANISM INFORMATION
+  def taxon_id
+    @sample.css("TAXON_ID").inner_text
+  end
+  
+  def common_name
+    @sample.css("COMMON_NAME").inner_text
+  end
+  
+  def scientific_name
+    @sample.css("SCIENTIFIC_NAME").inner_text
+  end
+  
+  def anonymized_name
+    @sample.css("ANONYMIZED_NAME").inner_text
+  end
+  
+  def individual_name
+    @sample.css("INDIVIDUAL_NAME").inner_text
+  end
+  
+  def organism_information
+    { :taxon_id => self.taxon_id,
+      :common_name => self.common_name,
+      :scientific_name => self.scientific_name,
+      :anonymized_name => self.anonymized_name,
+      :individual_name => self.individual_name }
+  end
+  
+  # SAMPLE LINKS
+  def url_link
+    @sample.css("URL_LINK").map do |node|
+      { :label => node.css("LABEL").inner_text,
+        :url => node.css("URL").inner_text }
+    end
+  end
+  
+  def entrez_link
+    @sample.css("ENTREZ_LINK").map do |node|
+      { :db => node.css("DB").inner_text,
+        :id => node.css("ID").inner_text }
+    end
+  end
+  
+  def sample_links
+    { :url_link => self.url_link,
+      :entrez_link => self.entrez_link }
+  end
+  
+  def all
+    { :sample_detail => self.sample_detail,
+      :orgarnism_information => self.organism_information,
+      :sample_links => self.sample_links }
+  end
+end
 
-if __FILE__ == $0
-  dir = "./latest/SRA023921"
-  s = SubmissionParser.new("SRA023921", "#{dir}/SRA023921.submission.xml")
-#  puts s.all
+class RunParser
+  def initialize(id, xml)
+    @nkgr = Nokogiri::XML(open(xml))
+    @run = @nkgr.css("RUN").select{|n| n.attr("accession").to_s == id }.first
+  end
   
-  st = StudyParser.new("SRP003565", "#{dir}/SRA023921.study.xml")
-#  puts st.all
+  # RUN DETAIL
+  def get_alias
+    @run.attr("alias").to_s
+  end
   
-  ex = ExperimentParser.new("SRX026899", "#{dir}/SRA023921.experiment.xml")
-  ap ex.all
+  def center_name
+    @run.attr("center_name").to_s
+  end
+  
+  def run_date
+    date = @run.attr("run_date").to_s
+    Time.parse(date) if not date.empty?
+  end
+  
+  def instrument_name
+    @run.attr("instrument_name").to_s
+  end
+  
+  def total_data_blocks
+    @run.attr("total_data_blocks").to_s
+  end
+    
+  def run_center
+    @run.attr("run_center").to_s
+  end
+  
+  def run_detail
+    { :alias => self.get_alias,
+      :center_name => self.center_name,
+      :run_date => self.run_date,
+      :instrument_name => self.instrument_name,
+      :total_data_blocks => self.total_data_blocks,
+      :run_center => self.run_center }
+  end
+  
+  # PIPELINE
+  def pipeline
+    @run.css("PIPE_SECTION").map do |node|
+      step_index = node.css("STEP_INDEX").inner_text
+      time_step_index = Time.parse(step_index) if not step_index.empty?
+
+      prev_step_index = node.css("PREV_STEP_INDEX").inner_text
+      time_prev_step_index = Time.parse(prev_step_index) if not prev_step_index.empty?
+      
+      { :section_name => node.attr("secrion_name").to_s,
+        :step_index => time_step_index,
+        :prev_step_index => time_prev_step_index,
+        :program => node.css("PROGRAM").inner_text,
+        :version => node.css("VERSION").inner_text }
+    end
+  end
+  
+  # SPOT INFORMATION
+  def number_of_reads_per_spot
+    @run.css("NUMBER_OF_READS_PER_SPOT").inner_text
+  end
+  
+  def spot_length
+    @run.css("SPOT_LENGTH").inner_text
+  end
+  
+  def read_spec
+    @run.css("READ_SPEC").map do |node|
+      { :read_index => node.css("READ_INDEX").inner_text,
+        :read_class => node.css("READ_CLASS").inner_text,
+        :read_type => node.css("READ_TYPE").inner_text,
+        :base_coord => node.css("BASE_COORD").inner_text }
+    end
+  end
+  
+  def spot_information
+    { :number_of_reads_per_spot => self.number_of_reads_per_spot,
+      :spot_length => self.spot_length,
+      :read_spec => self.read_spec }
+  end
+  
+  # RUN ATTRIBUTES
+  def run_attr
+    @run.css("RUN_ATTRIBUTE").map do |node|
+      { :tag => node.css("TAG").inner_text,
+        :value => node.css("VALUE").inner_text }
+    end
+  end
+  
+  def all
+    { :run_detail => self.run_detail,
+      :pipeline => self.pipeline,
+      :spot_information => self.spot_information,
+      :run_attr => self.run_attr }
+  end
 end
