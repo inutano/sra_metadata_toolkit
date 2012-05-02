@@ -54,7 +54,7 @@ class StudyID
   attr_reader :study
   
   def submission
-    @accsessions.split("\t")[1]
+    @accessions.split("\t")[1]
   end
   
   def experiment
