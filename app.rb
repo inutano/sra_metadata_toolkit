@@ -86,9 +86,18 @@ end
 
 get "/*.*" do
   id = params[:splat][0]
-  kind = params[:splat][1]
-
+  method = params[:splat][1]
+  
   xml = get_xml(id)
   metadata_parser = get_parser(id)
-  
+  if metadata_parser
+    result = metadata_parser.send(method.intern)
+    if result
+      JSON.dump(result)
+    else
+      "invalid: #{method}"
+    end
+  else
+    "invalid: #{id}"
+  end
 end
