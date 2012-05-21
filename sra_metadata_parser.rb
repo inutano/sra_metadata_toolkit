@@ -87,6 +87,14 @@ class StudyParser
     end
   end
   
+  def related_link
+    @study.css("RELATED_LINK").map do |node|
+      { :db => node.css("DB").inner_text,
+        :id => node.css("ID").inner_text,
+        :label => node.css("LABEL").inner_text }
+    end
+  end
+  
   def all
     { :alias => self.get_alias,
       :center_name => self.center_name,
@@ -96,7 +104,8 @@ class StudyParser
       :study_abstract => self.study_abstract,
       :study_description => self.study_description,
       :url_link => self.url_link,
-      :entrez_link => self.entrez_link }
+      :entrez_link => self.entrez_link,
+      :related_link => self.related_link }
   end
 end
 
@@ -370,7 +379,7 @@ class RunParser
     @run.css("PIPE_SECTION").map do |node|
       step_index = node.css("STEP_INDEX").inner_text
       time_step_index = Time.parse(step_index) if not step_index.empty?
-
+      
       prev_step_index = node.css("PREV_STEP_INDEX").inner_text
       time_prev_step_index = Time.parse(prev_step_index) if not prev_step_index.empty?
       
