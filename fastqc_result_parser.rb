@@ -51,6 +51,26 @@ class FastQCparser
     base =~ /\%GC\t(.+?)\t/m
     $1
   end
+  
+  def per_base_sequence_quality
+    @txt =~ /(>>Per base sequence quality.+?)>>END_MODULE/m
+    $1
+  end
+  
+  def per_base_sequence_quality_full
+    # return array of per base seq qual
+    # base, mean, median, lower quartile, upper quartile, 10th Percentile, 90th Percentile
+    base = self.per_base_sequence_quality
+    mline = base.split("\n")
+    mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }
+  end
+  
+  def total_mean_sequence_qual
+    per_base = self.per_base_sequence_quality_full
+    per_base_mean = per_base.map{|c| c[1].to_f }
+    line_num = per_base_mean.length
+    per_base_mean.reduce(:+) / line_num
+  end
 end
 
 if __FILE__ == $0
@@ -64,4 +84,7 @@ if __FILE__ == $0
   ap f.total_sequences
   ap f.sequence_length
   ap f.percent_gc 
+  
+  ap "total mean"
+  ap f.total_mean_sequence_qual
 end
