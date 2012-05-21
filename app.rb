@@ -84,7 +84,7 @@ get "/*.to_*" do
 end
 
 
-get "/*.*" do
+get "/*\.*" do
   id = params[:splat][0]
   method = params[:splat][1]
   
