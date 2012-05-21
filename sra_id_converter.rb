@@ -3,13 +3,12 @@
 # two table files should be placed in the same directory as this file.
 
 class SubmissionID
+  current_dir = "#{File.expand_path(File.dirname(__FILE__))}"
+  @@sra_accessions = open("#{current_dir}/SRA_Accessions").readlines.map{|l| l.split("\t") }
+  
   def initialize(sub_id)
-    current_dir = "#{File.expand_path(File.dirname(__FILE__))}"
-    sra_accessions = open("#{current_dir}/SRA_Accessions").readlines
-    sra_run_members = open("#{current_dir}/SRA_Run_Members").readlines
-    
     @submission = sub_id
-    @accessions = sra_accessions.select{|l| l.include?(sub_id) }.map{|l| l.split("\t").first }
+    @accessions = @@sra_accessions.select{|l| l[1] == sub_id }.map{|l| l.first }
   end
   attr_reader :submission
   
@@ -42,31 +41,33 @@ class SubmissionID
 end
 
 class StudyID
+  current_dir = "#{File.expand_path(File.dirname(__FILE__))}"
+  accessions_lines = open("#{current_dir}/SRA_Accessions").readlines
+  @@sra_accessions = accessions_lines.map{|l| l.split("\t") }
+  members_lines = open("#{current_dir}/SRA_Run_Members").readlines
+  @@sra_run_members = members_lines.map{|l| l.split("\t") }
+  
   def initialize(study_id)
-    current_dir = "#{File.expand_path(File.dirname(__FILE__))}"
-    sra_accessions = open("#{current_dir}/SRA_Accessions").readlines
-    sra_run_members = open("#{current_dir}/SRA_Run_Members").readlines
-    
     @study = study_id
-    @accessions = sra_accessions.select{|l| l =~ /^#{study_id}/ }.first
-    @run_members = sra_run_members.select{|l| l.include?(study_id) }
+    @accessions = @@sra_accessions.select{|l| l.first == study_id }.first
+    @run_members = @@sra_run_members.select{|l| l[4] == study_id }
   end
   attr_reader :study
   
   def submission
-    @accessions.split("\t")[1]
+    @accessions[1]
   end
   
   def experiment
-    @run_members.map{|l| l.split("\t")[2] }.uniq
+    @run_members.map{|l| l[2] }.uniq
   end
   
   def sample
-    @run_members.map{|l| l.split("\t")[3] }.uniq
+    @run_members.map{|l| l[3] }.uniq
   end
   
   def run
-    @run_members.map{|l| l.split("\t")[0] }.uniq
+    @run_members.map{|l| l[0] }.uniq
   end
   
   def pubmed
@@ -199,4 +200,9 @@ class RunID
       sample: self.sample,
       run: @run }
   end
+end
+
+if __FILE__ == $0
+  p = StudyID.new("ERP000546")
+  puts p.run
 end
