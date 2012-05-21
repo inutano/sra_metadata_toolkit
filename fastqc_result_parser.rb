@@ -53,8 +53,8 @@ class FastQCparser
   end
   
   def per_base_sequence_quality
-    # return array of per base seq qual
-    # base, mean, median, lower quartile, upper quartile, 10th Percentile, 90th Percentile
+    # returns 2d array
+    # column: base, mean, median, lower quartile, upper quartile, 10th Percentile, 90th Percentile
     @txt =~ /(>>Per base sequence quality.+?)>>END_MODULE/m
     base = $1
     mline = base.split("\n")
@@ -62,18 +62,67 @@ class FastQCparser
   end
   
   def total_mean_sequence_qual
-    per_base = self.per_base_sequence_quality_full
+    per_base = self.per_base_sequence_quality
     per_base_mean = per_base.map{|c| c[1].to_f }
     line_num = per_base_mean.length
     per_base_mean.reduce(:+) / line_num
   end
   
   def per_sequence_quality_scores
+    # returns 2d array
+    # column: quality, count
     @txt =~ /(>>Per sequence quality scores.+?)>>END_MODULE/m
-    $1
+    base = $1
+    mline = base.split("\t")
+    mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }
   end
   
-  def per_sequence_quality_scores
+  def per_base_sequence_content
+  end
+  
+  def per_base_gc_content
+  end
+  
+  def per_sequence_gc_content
+  end
+  
+  def per_base_n_content
+    # returns 2d array
+    # column: base, n-count
+    @txt =~ /(>>Per base N content.+?)>>END_MODULE/m
+    base = $1
+    mline = base.split("\n")
+    mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }
+  end
+  
+  def total_n_content
+    per_base = self.per_base_n_content
+    per_base_count = per_base.map{|c| c[1] }
+    fixed = per_base_count.map do |num|
+      if num =~ /E/
+        num =~ /(^.+)E-(.)/
+        b = $1.to_f
+        nn = $2.to_i
+        b * (0.1 ** nn).round(4)
+      else
+        num.to_f
+      end
+    end
+    fixed.reduce(:+)
+  end
+  
+  def sequence_length_distribution
+  end
+  
+  def sequence_duplication_levels
+    
+  end
+  
+  def overrepresented_sequences
+  end
+  
+  def kmer_content
+  end
 end
 
 if __FILE__ == $0
@@ -90,4 +139,6 @@ if __FILE__ == $0
   
   ap "total mean"
   ap f.total_mean_sequence_qual
+  ap "total n content"
+  ap f.total_n_content
 end
