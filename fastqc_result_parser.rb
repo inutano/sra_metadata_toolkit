@@ -31,7 +31,7 @@ class FastQCparser
   def total_sequences
     base = self.basic_statistics
     base =~ /Total Sequences\t(.+?)\t/m
-    $1
+    $1.to_i
   end
   
   def filtered_sequences
@@ -43,13 +43,13 @@ class FastQCparser
   def sequence_length
     base = self.basic_statistics
     base =~ /Sequence length\t(.+?)\t/m
-    $1
+    $1.to_i
   end
   
   def percent_gc
     base = self.basic_statistics
     base =~ /\%GC\t(.+?)\t/m
-    $1
+    $1.to_f
   end
   
   def per_base_sequence_quality
@@ -115,7 +115,17 @@ class FastQCparser
   end
   
   def sequence_duplication_levels
-    
+    # returns 2d array
+    # column: duplication level, relative count
+    @txt =~ /(>>Sequence Duplication Levels.+?)>>END_MODULE/m
+    base = $1
+    mline = base.split("\n")
+    mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }
+  end
+  
+  def total_duplicate_percentage
+    line = @txt.split("\n").select{|l| l =~ /^.Total Duplicate Percentage/ }.first
+    line.split("\t")[1].to_f
   end
   
   def overrepresented_sequences
@@ -141,4 +151,6 @@ if __FILE__ == $0
   ap f.total_mean_sequence_qual
   ap "total n content"
   ap f.total_n_content
+  ap "total duplication percentage"
+  ap f.total_duplicate_percentage
 end
