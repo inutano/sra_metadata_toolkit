@@ -163,31 +163,33 @@ class SampleID
 end
 
 class RunID
+  current_dir = "#{File.expand_path(File.dirname(__FILE__))}"
+  accessions_lines = open("#{current_dir}/SRA_Accessions").readlines
+  @@sra_accessions = accessions_lines.map{|l| l.split("\t") }
+  members_lines = open("#{current_dir}/SRA_Run_Members").readlines
+  @@sra_run_members = members_lines.map{|l| l.split("\t") }
+  
   def initialize(run_id)
-    current_dir = "#{File.expand_path(File.dirname(__FILE__))}"
-    sra_accessions = open("#{current_dir}/SRA_Accessions").readlines
-    sra_run_members = open("#{current_dir}/SRA_Run_Members").readlines
-    
     @run = run_id
-    @accessions = sra_accessions.select{|l| l =~ /^#{run_id}/ }.first
-    @run_members = sra_run_members.select{|l| l.include?(run_id) }
+    @accessions = @@sra_accessions.select{|l| l.first == run_id }.first
+    @run_members = @@sra_run_members.select{|l| l[0] == run_id }
   end
   attr_reader :run
   
   def submission
-    @accessions.split("\t")[1]
+    @accessions[1]
   end
   
   def study
-    @run_members.map{|l| l.split("\t")[4] }.uniq
+    @run_members.map{|l| l[4] }.uniq
   end
   
   def experiment
-    @run_members.map{|l| l.split("\t")[2] }.uniq
+    @run_members.map{|l| l[2] }.uniq
   end
   
   def sample
-    @run_members.map{|l| l.split("\t")[3] }.uniq
+    @run_members.map{|l| l[3] }.uniq
   end
   
   def pubmed
