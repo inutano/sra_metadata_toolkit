@@ -108,7 +108,7 @@ class FastQCparser
         num.to_f
       end
     end
-    fixed.reduce(:+)
+    fixed.reduce(:+) / fixed.length
   end
   
   def sequence_length_distribution
