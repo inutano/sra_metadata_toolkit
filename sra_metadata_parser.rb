@@ -173,7 +173,7 @@ class ExperimentParser
 
   # PLATFORM
   def platform
-    @exp.css("PLATFORM").first.name
+    @exp.css("PLATFORM").first.children[1].name
   end
   
   def instrument_model
@@ -430,3 +430,4 @@ class RunParser
       :run_attr => self.run_attr }
   end
 end
+
