@@ -58,7 +58,7 @@ get "/*.to_*" do
     result = case dest
              when "submission"
                obj.submission
-
+             
              when "study"
                obj.study
 
