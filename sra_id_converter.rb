@@ -1,9 +1,9 @@
-# -*- coding:utf-8 -*-
+# -*- coding: utf-8 -*-
 # be sure that SRA_Accession and SRA_Run_Members files are up-to-date.
 # two table files should be placed in the same directory as this file.
 
 class SubmissionID
-  current_dir = "#{File.expand_path(File.dirname(__FILE__))}"
+  current_dir = File.expand_path(File.dirname(__FILE__))
   @@sra_accessions = open("#{current_dir}/SRA_Accessions").readlines.map{|l| l.split("\t") }
   
   def initialize(sub_id)
@@ -41,7 +41,7 @@ class SubmissionID
 end
 
 class StudyID
-  current_dir = "#{File.expand_path(File.dirname(__FILE__))}"
+  current_dir = File.expand_path(File.dirname(__FILE__))
   accessions_lines = open("#{current_dir}/SRA_Accessions").readlines
   @@sra_accessions = accessions_lines.map{|l| l.split("\t") }
   members_lines = open("#{current_dir}/SRA_Run_Members").readlines
