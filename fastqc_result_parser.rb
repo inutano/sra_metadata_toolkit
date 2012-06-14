@@ -73,17 +73,35 @@ class FastQCparser
     # column: quality, count
     @txt =~ /(>>Per sequence quality scores.+?)>>END_MODULE/m
     base = $1
-    mline = base.split("\t")
+    mline = base.split("\n")
     mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }
   end
   
   def per_base_sequence_content
+    # returns 2d array
+    # column: base position, % of base G, A, T, and C
+    @txt =~ /(>>Per base sequence content.+?)>>END_MODULE/m
+    base = $1
+    mline = base.split("\n")
+    mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }
   end
   
   def per_base_gc_content
+    # returns 2d array
+    # column: base position, %GC
+    @txt =~ /(>>Per GC sequence content.+?)>>END_MODULE/m
+    base = $1
+    mline = base.split("\n")
+    mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }    
   end
   
   def per_sequence_gc_content
+    # returns 2d array
+    # column: GC content, read count
+    @txt =~ /(>>Per sequence GC content.+?)>>END_MODULE/m
+    base = $1
+    mline = base.split("\n")
+    mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }
   end
   
   def per_base_n_content
@@ -112,6 +130,12 @@ class FastQCparser
   end
   
   def sequence_length_distribution
+    # returns 2d array
+    # column: length, count
+    @txt =~ /(>>Sequence Length Distribution.+?)>>END_MODULE/m
+    base = $1
+    mline = base.split("\n")
+    mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }
   end
   
   def sequence_duplication_levels
@@ -129,9 +153,21 @@ class FastQCparser
   end
   
   def overrepresented_sequences
+    # returns 2d array
+    # column: sequence, count, %, possible source
+    @txt =~ /(>>Overrepresented sequences.+?)>>END_MODULE/m
+    base = $1
+    mline = base.split("\n")
+    mline.select{|l| l =~ /^(A|T|G|C)/ }.map{|c| c.split("\t") }
   end
   
   def kmer_content
+    # returns 2d array
+    # column: sequence, count, obs/exp overall, obs/exp max, max obs/exp position
+    @txt =~ /(>>Kmer Content.+?)>>END_MODULE/m
+    base = $1
+    mline = base.split("\n")
+    mline.select{|l| l =~ /^(A|T|G|C)/ }.map{|c| c.split("\t") }    
   end
 end
 
