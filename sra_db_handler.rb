@@ -2,10 +2,8 @@
 
 require "active_record"
 require "logger"
-
 require "./fastqc_result_parser"
 require "./sra_metadata_parser"
-
 require "ap"
 
 class SRAID < ActiveRecord::Base
@@ -33,10 +31,10 @@ if __FILE__ == $0
   records = SRAID.where( :status => "done")
   
   # LOADING QUALITY DATA INTO ARRAY
-  records_qual_parser = records.map do |record|
+  records_qual = records.map do |record|
     runid = record.runid
     parser_arr = get_qual_result(runid)
-    qual_data_arr = parser_arr.map do |p|
+    parser_arr.map do |p|
       { filename: p.filename,
         total_sequences: p.total_sequences,
         sequence_length: p.sequence_length,
@@ -61,7 +59,17 @@ if __FILE__ == $0
     metadata_run << p_run.all
     p_sample = SampleParser.new(sampleid, xml_head + ".sample.xml")
     metadata_sample << p_sample.all
-    p_exp = ExperimentParser.new(expid, xml_head _ ".experiment.xml")
+    p_exp = ExperimentParser.new(expid, xml_head + ".experiment.xml")
     metadata_exp << p_exp.all
   end
+  
+  # TEST
+  ap "records_qual 10"
+  ap records_qual[0..9]
+  ap "metadata_run 10"
+  ap metadata_run[0..9]
+  ap "metadata_sample 10"
+  ap metadata_run[0..9]
+  ap "metadata_exp 10"
+  ap metadata_exp[0..9]
 end
