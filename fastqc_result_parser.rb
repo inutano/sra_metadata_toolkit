@@ -37,7 +37,7 @@ class FastQCparser
   def filtered_sequences
     base = self.basic_statistics
     base =~ /Filtered Sequences\t(.+?)\t/m
-    $1
+    $1.to_i
   end
   
   def sequence_length
@@ -89,7 +89,7 @@ class FastQCparser
   def per_base_gc_content
     # returns 2d array
     # column: base position, %GC
-    @txt =~ /(>>Per GC sequence content.+?)>>END_MODULE/m
+    @txt =~ /(>>Per Base GC content.+?)>>END_MODULE/m
     base = $1
     mline = base.split("\n")
     mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }    
