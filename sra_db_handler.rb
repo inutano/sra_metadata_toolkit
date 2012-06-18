@@ -49,18 +49,20 @@ if __FILE__ == $0
   metadata_run = []
   metadata_sample = []
   metadata_exp = []
-  records_metadata_parser_run = records.map do |record|
+  records.each do |record|
     subid = record.subid
     runid = record.runid
     sampleid = record.sampleid
     expid = record.expid
     xml_head = "./latest/#{subid.slice(0,6)}/#{subid}/#{subid}"
     p_run = RunParser.new(runid, xml_head + ".run.xml")
-    metadata_run << p_run.all
     p_sample = SampleParser.new(sampleid, xml_head + ".sample.xml")
-    metadata_sample << p_sample.all
     p_exp = ExperimentParser.new(expid, xml_head + ".experiment.xml")
-    metadata_exp << p_exp.all
+    if !subid.empty? && !runid.empty? && !sampleid && !expid
+      metadata_run << p_run.all
+      metadata_sample << p_sample.all
+      metadata_exp << p_exp.all
+    end
   end
   
   # TEST
@@ -69,7 +71,7 @@ if __FILE__ == $0
   ap "metadata_run 10"
   ap metadata_run[0..9]
   ap "metadata_sample 10"
-  ap metadata_run[0..9]
+  ap metadata_sample[0..9]
   ap "metadata_exp 10"
   ap metadata_exp[0..9]
 end
