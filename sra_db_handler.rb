@@ -12,7 +12,7 @@ end
 def get_qual_result(runid)
   # RETURN ARRAY OF FASTQCPARSER CLASS OBJECTS
   f_path = "./fastqc/#{runid.slice(0,6)}/#{runid}"
-  read_dirs = Dir.entries(f_path).delete_if{|f| f =~ /^\./ }
+  read_dirs = Dir.entries(f_path).select{|f| f =~ /^.RR\d{6}.+fastqc$/ }
   read_dirs.map do |dir|
     data_txt = "#{f_path}/#{dir}/fastqc_data.txt"
     FastQCparser.new(data_txt)
@@ -32,16 +32,20 @@ if __FILE__ == $0
   
   # LOADING QUALITY DATA INTO ARRAY
   records_qual = records.map do |record|
-    runid = record.runid
-    parser_arr = get_qual_result(runid)
-    parser_arr.map do |p|
-      { filename: p.filename,
-        total_sequences: p.total_sequences,
-        sequence_length: p.sequence_length,
-        percent_gc: p.percent_gc,
-        total_phred: p.total_mean_sequence_qual,
-        total_n: p.total_n_content,
-        total_dup: p.total_duplicate_percentage }
+    begin
+      runid = record.runid
+      parser_arr = get_qual_result(runid)
+      parser_arr.map do |p|
+        { filename: p.filename,
+          total_sequences: p.total_sequences,
+          sequence_length: p.sequence_length,
+          percent_gc: p.percent_gc,
+          total_phred: p.total_mean_sequence_qual,
+          total_n: p.total_n_content,
+          total_dup: p.total_duplicate_percentage }
+      end
+    rescue => ex
+      puts "#{ex.class}: #{ex.message}"
     end
   end
   
@@ -50,21 +54,26 @@ if __FILE__ == $0
   metadata_sample = []
   metadata_exp = []
   records.each do |record|
-    subid = record.subid
-    runid = record.runid
-    sampleid = record.sampleid
-    expid = record.expid
-    xml_head = "./latest/#{subid.slice(0,6)}/#{subid}/#{subid}"
-    p_run = RunParser.new(runid, xml_head + ".run.xml")
-    p_sample = SampleParser.new(sampleid, xml_head + ".sample.xml")
-    p_exp = ExperimentParser.new(expid, xml_head + ".experiment.xml")
-    if !subid.empty? && !runid.empty? && !sampleid && !expid
-      metadata_run << p_run.all
-      metadata_sample << p_sample.all
-      metadata_exp << p_exp.all
+    begin
+      subid = record.subid
+      runid = record.runid
+      sampleid = record.sampleid
+      expid = record.expid
+      xml_head = "./latest/#{subid.slice(0,6)}/#{subid}/#{subid}"
+      p_run = RunParser.new(runid, xml_head + ".run.xml")
+      p_sample = SampleParser.new(sampleid, xml_head + ".sample.xml")
+      p_exp = ExperimentParser.new(expid, xml_head + ".experiment.xml")
+      if !subid.empty? && !runid.empty? && !sampleid && !expid
+        metadata_run << p_run.all
+        metadata_sample << p_sample.all
+        metadata_exp << p_exp.all
+      end
+      
+    rescue => ex
+      puts "#{ex.class}: #{ex.message}"
     end
   end
-  
+    
   # TEST
   ap "records_qual 10"
   ap records_qual[0..9]
