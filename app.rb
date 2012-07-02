@@ -103,7 +103,7 @@ get %r{/fastqc/((S|E|D)RR\d{6})$} do |id, db|
   id_head = id.slice(0,6)
   id_dir = "./fastqc/#{id_head}/#{id}"
   read_files = Dir.entries(id_dir).select{|f| f =~ /_fastqc$/ }
-  read_files
+  JSON.dump(read_files)
 end
 
 get %r{/fastqc/json/((S|E|D)RR\d{6}(_|_1_|_2_)fastqc)$} do |filename, db, read|
