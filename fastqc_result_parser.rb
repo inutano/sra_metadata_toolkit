@@ -89,7 +89,7 @@ class FastQCparser
   def per_base_gc_content
     # returns 2d array
     # column: base position, %GC
-    @txt =~ /(>>Per Base GC content.+?)>>END_MODULE/m
+    @txt =~ /(>>Per base GC content.+?)>>END_MODULE/m
     base = $1
     mline = base.split("\n")
     mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }    
@@ -169,19 +169,34 @@ class FastQCparser
     mline = base.split("\n")
     mline.select{|l| l =~ /^(A|T|G|C)/ }.map{|c| c.split("\t") }    
   end
+  
+  def all
+    { filename: self.filename,
+      file_type: self.file_type,
+      encoding: self.encoding,
+      total_sequences: self.total_sequences,
+      filtered_sequences: self.filtered_sequences,
+      sequence_length: self.sequence_length,
+      percent_gc: self.percent_gc,
+      per_base_sequence_quality: self.per_base_sequence_quality,
+      per_sequnce_quality_scores: self.per_sequence_quality_scores,
+      per_base_sequence_content: self.per_base_sequence_content,
+      per_base_gc_content: self.per_base_gc_content,
+      per_sequence_gc_content: self.per_sequence_gc_content,
+      per_base_n_content: self.per_base_n_content,
+      sequence_length_distribution: self.sequence_length_distribution,
+      sequence_duplication_levels: self.sequence_duplication_levels,
+      overrepresented_sequences: self.overrepresented_sequences,
+      kmer_content: self.kmer_content }
+  end
 end
 
 if __FILE__ == $0
   require "ap" # for debug
   
-  file = "/Volumes/Macintosh HD 4/fastqc/SRR001001/SRR001001_1_fastqc/fastqc_data.txt"
+  file = "/Volumes/Macintosh HD 2/sra_metadata/fastqc/SRR001/SRR001001/SRR001001_1_fastqc/fastqc_data.txt"
   f = FastQCparser.new(file)
-  ap f.filename
-  ap f.file_type
-  ap f.encoding
-  ap f.total_sequences
-  ap f.sequence_length
-  ap f.percent_gc 
+  ap f.all
   
   ap "total mean"
   ap f.total_mean_sequence_qual
