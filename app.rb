@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-require "./sra_id_converter"
-require "./sra_metadata_parser"
+#require "./sra_id_converter"
+#require "./sra_metadata_parser"
+require "./fastqc_result_parser"
 require "sinatra"
 require "json"
 
@@ -96,4 +97,19 @@ get "/*\.*" do
   else
     "invalid: #{id}"
   end
+end
+
+get %r{/fastqc/((S|E|D)RR\d{6})$} do |id, db|
+  id_head = id.slice(0,6)
+  id_dir = "./fastqc/#{id_head}/#{id}"
+  read_files = Dir.entries(id_dir).select{|f| f =~ /_fastqc$/ }
+  read_files
+end
+
+get %r{/fastqc/json/((S|E|D)RR\d{6}(_|_1_|_2_)fastqc)$} do |filename, db, read|
+  id = filename.slice(0,9)
+  id_head = id.slice(0,6)
+  result_text_path = "./fastqc/#{id_head}/#{id}/#{filename}/fastqc_data.txt"
+  f = FastQCparser.new(result_text_path)
+  JSON.dump(f.all)
 end
