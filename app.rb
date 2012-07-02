@@ -51,9 +51,22 @@ get "/" do
   "SRA METADATA TOOLKIT"
 end
 
-get "/*.to_*" do
-  origin = params[:splat][0]
-  dest = params[:splat][1]
+get %r{/fastqc/((S|E|D)RR\d{6})$} do |id, db|
+  id_head = id.slice(0,6)
+  id_dir = "./fastqc/#{id_head}/#{id}"
+  read_files = Dir.entries(id_dir).select{|f| f =~ /_fastqc$/ }
+  JSON.dump(read_files)
+end
+
+get %r{/fastqc/json/((S|E|D)RR\d{6}(_|_1_|_2_)fastqc)$} do |filename, db, read|
+  id = filename.slice(0,9)
+  id_head = id.slice(0,6)
+  result_text_path = "./fastqc/#{id_head}/#{id}/#{filename}/fastqc_data.txt"
+  f = FastQCparser.new(result_text_path)
+  JSON.dump(f.all)
+end
+
+get %r{/idconvert/((S|E|D)..\d{6})\.to_(.+)$} do |origin, db, dest|
   obj = obj_gen(origin)
   if obj
     result = case dest
@@ -99,17 +112,3 @@ get "/*\.*" do
   end
 end
 
-get %r{/fastqc/((S|E|D)RR\d{6})$} do |id, db|
-  id_head = id.slice(0,6)
-  id_dir = "./fastqc/#{id_head}/#{id}"
-  read_files = Dir.entries(id_dir).select{|f| f =~ /_fastqc$/ }
-  JSON.dump(read_files)
-end
-
-get %r{/fastqc/json/((S|E|D)RR\d{6}(_|_1_|_2_)fastqc)$} do |filename, db, read|
-  id = filename.slice(0,9)
-  id_head = id.slice(0,6)
-  result_text_path = "./fastqc/#{id_head}/#{id}/#{filename}/fastqc_data.txt"
-  f = FastQCparser.new(result_text_path)
-  JSON.dump(f.all)
-end
