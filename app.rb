@@ -1,51 +1,60 @@
 # -*- coding: utf-8 -*-
 
-#require "./sra_id_converter"
-#require "./sra_metadata_parser"
+require "./sra_id_converter"
+require "./sra_metadata_parser"
 require "./fastqc_result_parser"
 require "sinatra"
 require "json"
 
-def obj_gen(query)
-  query =~ /^(S|E|D)R(A|P|X|S|R)\d{6}$/
-  case $2
+def converter_gen(origin, id_type)
+  case id_type
   when "A"
-    SubmissionID.new(query)
+    SRAIDConverter::SubmissionID.new(origin)
 
   when "P"
-    StudyID.new(query)
+    SRAIDConverter::StudyID.new(origin)
 
   when "X"
-    ExperimentID.new(query)
-
+    SRAIDConverter::ExperimentID.new(origin)
+  
   when "S"
-    SampleID.new(query)
+    SRAIDConverter::SampleID.new(origin)
 
   when "R"
-    RunID.new(query)
+    SRAIDConverter::RunID.new(origin)
   end
 end
 
-def get_parser(id, obj)
-  sub_id = obj.submission
+def get_parser(origin, converter)
+  sub_id = converter.submission
   prefix = "#{File.expand_path(File.dirname(__FILE__))}/latest/#{sub_id}/#{sub_id}"
-  case obj.class
-  when SubmissionID
-    SubmissionParser.new(id, prefix + ".submission.xml")
+  case converter.class
+  when SRAIDConverter::SubmissionID
+    SubmissionParser.new(origin, prefix + ".submission.xml")
 
-  when StudyID
-    StudyParser.new(id, prefix + ".study.xml")
+  when SRAIDConverter::StudyID
+    StudyParser.new(origin, prefix + ".study.xml")
 
-  when ExperimentID
-    ExperimentParser.new(id, prefix + ".experiment.xml")
+  when SRAIDConverter::ExperimentID
+    ExperimentParser.new(origin, prefix + ".experiment.xml")
 
-  when SampleID
-    SampleParser.new(id, prefix + ".sample.xml")
+  when SRAIDConverter::SampleID
+    SampleParser.new(origin, prefix + ".sample.xml")
 
-  when RunID
-    RunParser.new(id, prefix + ".run.xml")
+  when SRAIDConverter::RunID
+    RunParser.new(origin, prefix + ".run.xml")
   end
 end
+
+
+# INITIALIZE MODULE SRAIDConverter
+cur_dir = File.expand_path(File.dirname(__FILE__))
+sra_accessions_path = "#{cur_dir}/SRA_Accesions"
+sra_run_members_path = "#{cur_dir}/SRA_Run_Members"
+SRAIDConverter.load_table(sra_accesions_path, sra_run_members_path)
+
+
+# ROUTING
 
 get "/" do
   "SRA METADATA TOOLKIT"
@@ -58,7 +67,7 @@ get %r{/fastqc/((S|E|D)RR\d{6})$} do |id, db|
   JSON.dump(read_files)
 end
 
-get %r{/fastqc/json/((S|E|D)RR\d{6}(_|_1_|_2_)fastqc)$} do |filename, db, read|
+get %r{/fastqc/json/((S|E|D)RR\d\{6\}(_|_1_|_2_)fastqc)$} do |filename, db, read|
   id = filename.slice(0,9)
   id_head = id.slice(0,6)
   result_text_path = "./fastqc/#{id_head}/#{id}/#{filename}/fastqc_data.txt"
@@ -66,49 +75,30 @@ get %r{/fastqc/json/((S|E|D)RR\d{6}(_|_1_|_2_)fastqc)$} do |filename, db, read|
   JSON.dump(f.all)
 end
 
-get %r{/idconvert/((S|E|D)..\d{6})\.to_(.+)$} do |origin, db, dest|
-  obj = obj_gen(origin)
-  if obj
-    result = case dest
-             when "submission"
-               obj.submission
-             
-             when "study"
-               obj.study
+get %r{/idconvert/((S|E|D)R(.)\d\{6\})\.to_(.+)$} do |origin, db, id_type, dest|
+  converter = converter_gen(origin, id_type)
+  result = case dest
+           when "submission"
+             converter.submission
+           
+           when "study"
+             converter.study
 
-             when "experiment"
-               obj.experiment
+           when "experiment"
+             converter.experiment
 
-             when "sample"
-               obj.sample
+           when "sample"
+             converter.sample
 
-             when "run"
-               obj.run
-             end
-    if result
-      JSON.dump(result)
-    else
-      "invalid: #{dest}"
-    end
-  else
-    "invalid: #{origin}"
-  end
+           when "run"
+             converter.run
+           end
+  JSON.dump(result)  
 end
 
-get "/*\.*" do
-  id = params[:splat][0]
-  method = params[:splat][1]
-  obj = obj_gen(id)
-  metadata_parser = get_parser(id, obj)
-  if metadata_parser
-    result = metadata_parser.send(method.intern)
-    if result
-      JSON.dump(result)
-    else
-      "invalid: #{method}"
-    end
-  else
-    "invalid: #{id}"
-  end
+get %r{/metadata/((S|E|D)R(.)\d\{6\})\.(\w+)$} do |origin, db, id_type, method|
+  converter = converter_gen(origin, id_type)
+  metadata_parser = get_parser(origin, converter)
+  result = metagata_parser.send(method.intern)
+  JSON.dump(result)
 end
-
