@@ -55,9 +55,9 @@ end
 
 # INITIALIZE MODULE SRAIDConverter
 cur_dir = File.expand_path(File.dirname(__FILE__))
-sra_accessions_path = "#{cur_dir}/SRA_Accesions"
+sra_accessions_path = "#{cur_dir}/SRA_Accessions"
 sra_run_members_path = "#{cur_dir}/SRA_Run_Members"
-SRAIDConverter.load_table(sra_accesions_path, sra_run_members_path)
+SRAIDConverter.load_table(sra_accessions_path, sra_run_members_path)
 
 
 # ROUTING
@@ -73,7 +73,7 @@ get %r{/fastqc/((S|E|D)RR\d{6})$} do |id, db|
   JSON.dump(read_files)
 end
 
-get %r{/fastqc/json/((S|E|D)RR\d\{6\}(_|_1_|_2_)fastqc)$} do |filename, db, read|
+get %r{/fastqc/json/((S|E|D)RR\d{6}(_|_1_|_2_)fastqc)$} do |filename, db, read|
   id = filename.slice(0,9)
   id_head = id.slice(0,6)
   result_text_path = "./fastqc/#{id_head}/#{id}/#{filename}/fastqc_data.txt"
@@ -81,7 +81,7 @@ get %r{/fastqc/json/((S|E|D)RR\d\{6\}(_|_1_|_2_)fastqc)$} do |filename, db, read
   JSON.dump(f.all)
 end
 
-get %r{/idconvert/((S|E|D)R(.)\d\{6\})\.to_(.+)$} do |origin, db, id_type, dest|
+get %r{/idconvert/((S|E|D)R(.)\d{6})\.to_(.+)$} do |origin, db, id_type, dest|
   converter = converter_gen(origin, id_type)
   result = case dest
            when "submission"
@@ -102,7 +102,7 @@ get %r{/idconvert/((S|E|D)R(.)\d\{6\})\.to_(.+)$} do |origin, db, id_type, dest|
   JSON.dump(result)  
 end
 
-get %r{/metadata/((S|E|D)R(.)\d\{6\})\.(\w+)$} do |origin, db, id_type, method|
+get %r{/metadata/((S|E|D)R(.)\d{6})\.(\w+)$} do |origin, db, id_type, method|
   converter = converter_gen(origin, id_type)
   metadata_parser = get_parser(origin, converter)
   if metadata_parser
