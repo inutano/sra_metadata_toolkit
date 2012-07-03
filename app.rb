@@ -26,23 +26,29 @@ def converter_gen(origin, id_type)
 end
 
 def get_parser(origin, converter)
+  cur_dir = File.expand_path(File.dirname(__FILE__))
   sub_id = converter.submission
-  prefix = "#{File.expand_path(File.dirname(__FILE__))}/latest/#{sub_id}/#{sub_id}"
+  prefix = "#{cur_dir}/latest/#{sub_id.slice(0,6)}/#{sub_id}/#{sub_id}"
   case converter.class
   when SRAIDConverter::SubmissionID
-    SubmissionParser.new(origin, prefix + ".submission.xml")
+    xml = prefix + ".submission.xml"
+    SubmissionParser.new(origin, xml) if File.exist?(xml)
 
   when SRAIDConverter::StudyID
-    StudyParser.new(origin, prefix + ".study.xml")
+    xml = prefix + ".study.xml"
+    StudyParser.new(origin, xml) if File.exist?(xml)
 
   when SRAIDConverter::ExperimentID
-    ExperimentParser.new(origin, prefix + ".experiment.xml")
+    xml = prefix + ".experiment.xml"
+    ExperimentParser.new(origin, xml) if File.exist?(xml)
 
   when SRAIDConverter::SampleID
-    SampleParser.new(origin, prefix + ".sample.xml")
+    xml = prefix + ".sample.xml"
+    SampleParser.new(origin, xml) if File.exist?(xml)
 
   when SRAIDConverter::RunID
-    RunParser.new(origin, prefix + ".run.xml")
+    xml = prefix + ".run.xml"
+    RunParser.new(origin, xml) if File.exist?(xml)
   end
 end
 
@@ -99,6 +105,10 @@ end
 get %r{/metadata/((S|E|D)R(.)\d\{6\})\.(\w+)$} do |origin, db, id_type, method|
   converter = converter_gen(origin, id_type)
   metadata_parser = get_parser(origin, converter)
-  result = metagata_parser.send(method.intern)
-  JSON.dump(result)
+  if metadata_parser
+    result = metagata_parser.send(method.intern)
+    JSON.dump(result)
+  else
+    "metadata file not found."
+  end
 end
