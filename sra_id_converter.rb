@@ -20,7 +20,14 @@ module SRAIDConverter
       @submission = sub_id
       @accessions = SRA_Accessions.select{|l| l[1] == sub_id }.map{|l| l.first }
     end
-    attr_reader :submission
+    
+    def origin
+      @submission
+    end
+    
+    def submission
+      [@submission]
+    end
     
     def study
       @accessions.select{|id| id =~ /^.RP\d{6}/ }.uniq.sort
@@ -42,7 +49,7 @@ module SRAIDConverter
     end
   
     def all
-      { submission: @submission,
+      { submission: self.submission,
         study: self.study,
         experiment: self.experiment,
         sample: self.sample,
@@ -56,10 +63,17 @@ module SRAIDConverter
       @accessions = SRA_Accessions.select{|l| l.first == study_id }.first
       @run_members = SRA_Run_Members.select{|l| l[4] == study_id }
     end
-    attr_reader :study
+    
+    def origin
+      @study
+    end
   
     def submission
-      @accessions[1]
+      [@accessions[1]]
+    end
+    
+    def study
+      [@study]
     end
   
     def experiment
@@ -79,7 +93,7 @@ module SRAIDConverter
   
     def all
       { submission: self.submission,
-        study: @study,
+        study: self.study,
         experiment: self.experiment,
         sample: self.sample,
         run: self.run }
@@ -89,61 +103,32 @@ module SRAIDConverter
   class ExperimentID
     def initialize(exp_id)
       @experiment = exp_id
-      @accessions = SRA_Accessions.select{|l| l =~ /^#{exp_id}/ }.first
+      @accessions = SRA_Accessions.select{|l| l.first == exp_id }.first
       @run_members = SRA_Run_Members.select{|l| l.include?(exp_id) }
     end
-    attr_reader :experiment
+    
+    def origin
+      @experiment
+    end
   
     def submission
-      @accessions.split("\t")[1]
+      [@accessions[1]]
     end
   
     def study
-      @run_members.map{|l| l.split("\t")[4] }.uniq.sort
+      @run_members.map{|l| l[4] }.uniq.sort
+    end
+    
+    def experiment
+      [@experiment]
     end
   
     def sample
-      @run_members.map{|l| l.split("\t")[3] }.uniq.sort
+      @run_members.map{|l| l[3] }.uniq.sort
     end
   
     def run
-      @run_members.map{|l| l.split("\t")[0] }.uniq.sort
-    end
-  
-    def pubmed
-    end
-  
-    def all
-      { submission: self.submission,
-        study: self.study,
-        experiment: @experiment,
-        sample: self.sample,
-        run: self.run }
-    end
-  end
-
-  class SampleID  
-    def initialize(sample_id)
-      @sample = sample_id
-      @accessions = SRA_Accessions.select{|l| l =~ /^#{sample_id}/ }.first
-      @run_members = SRA_Run_Members.select{|l| l.include?(sample_id) }
-    end
-    attr_reader :sample
-  
-    def submission
-      @accessions.split("\t")[1]
-    end
-  
-    def study
-      @run_members.map{|l| l.split("\t")[4] }.uniq.sort
-    end
-  
-    def experiment
-      @run_members.map{|l| l.split("\t")[2] }.uniq.sort
-    end
-  
-    def run
-      @run_members.map{|l| l.split("\t")[0] }.uniq.sort
+      @run_members.map{|l| l[0] }.uniq.sort
     end
   
     def pubmed
@@ -153,7 +138,50 @@ module SRAIDConverter
       { submission: self.submission,
         study: self.study,
         experiment: self.experiment,
-        sample: @sample,
+        sample: self.sample,
+        run: self.run }
+    end
+  end
+
+  class SampleID  
+    def initialize(sample_id)
+      @sample = sample_id
+      @accessions = SRA_Accessions.select{|l| l.first == sample_id }.first
+      @run_members = SRA_Run_Members.select{|l| l.include?(sample_id) }
+    end
+    
+    def origin
+      @sample
+    end
+  
+    def submission
+      [@accessions[1]]
+    end
+  
+    def study
+      @run_members.map{|l| l[4] }.uniq.sort
+    end
+  
+    def experiment
+      @run_members.map{|l| l[2] }.uniq.sort
+    end
+    
+    def sample
+      [@sample]
+    end
+  
+    def run
+      @run_members.map{|l| l[0] }.uniq.sort
+    end
+  
+    def pubmed
+    end
+  
+    def all
+      { submission: self.submission,
+        study: self.study,
+        experiment: self.experiment,
+        sample: self.sample,
         run: self.run }
     end
   end
@@ -164,10 +192,13 @@ module SRAIDConverter
       @accessions = SRA_Accessions.select{|l| l.first == run_id }.first
       @run_members = SRA_Run_Members.select{|l| l[0] == run_id }
     end
-    attr_reader :run
+    
+    def origin
+      @run
+    end
   
     def submission
-      @accessions[1]
+      [@accessions[1]]
     end
   
     def study
@@ -181,6 +212,10 @@ module SRAIDConverter
     def sample
       @run_members.map{|l| l[3] }.uniq.sort
     end
+    
+    def run
+      [@run]
+    end
   
     def pubmed
     end
@@ -190,7 +225,7 @@ module SRAIDConverter
         study: self.study,
         experiment: self.experiment,
         sample: self.sample,
-        run: @run }
+        run: self.run }
     end
   end
 end

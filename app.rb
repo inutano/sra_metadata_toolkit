@@ -25,33 +25,34 @@ def converter_gen(origin, id_type)
   end
 end
 
-def get_parser(origin, converter)
+def get_parser(converter)
   cur_dir = File.expand_path(File.dirname(__FILE__))
-  sub_id = converter.submission
+  sub_id = converter.submission.first
   prefix = "#{cur_dir}/latest/#{sub_id.slice(0,6)}/#{sub_id}/#{sub_id}"
-  case converter.class
-  when SRAIDConverter::SubmissionID
+  origin_id = converter.origin
+  origin_id =~ /^\wR(?<type>\w)/
+  case $~[:type]
+  when "A"
     xml = prefix + ".submission.xml"
-    SubmissionParser.new(origin, xml) if File.exist?(xml)
+    SubmissionParser.new(origin_id, xml) if File.exist?(xml)
 
-  when SRAIDConverter::StudyID
+  when "P"
     xml = prefix + ".study.xml"
-    StudyParser.new(origin, xml) if File.exist?(xml)
+    StudyParser.new(origin_id, xml) if File.exist?(xml)
 
-  when SRAIDConverter::ExperimentID
+  when "X"
     xml = prefix + ".experiment.xml"
-    ExperimentParser.new(origin, xml) if File.exist?(xml)
+    ExperimentParser.new(origin_id, xml) if File.exist?(xml)
 
-  when SRAIDConverter::SampleID
+  when "S"
     xml = prefix + ".sample.xml"
-    SampleParser.new(origin, xml) if File.exist?(xml)
+    SampleParser.new(origin_id, xml) if File.exist?(xml)
 
-  when SRAIDConverter::RunID
+  when "R"
     xml = prefix + ".run.xml"
-    RunParser.new(origin, xml) if File.exist?(xml)
+    RunParser.new(origin_id, xml) if File.exist?(xml)
   end
 end
-
 
 # INITIALIZE MODULE SRAIDConverter
 cur_dir = File.expand_path(File.dirname(__FILE__))
@@ -59,9 +60,7 @@ sra_accessions_path = "#{cur_dir}/SRA_Accessions"
 sra_run_members_path = "#{cur_dir}/SRA_Run_Members"
 SRAIDConverter.load_table(sra_accessions_path, sra_run_members_path)
 
-
 # ROUTING
-
 get "/" do
   "SRA METADATA TOOLKIT"
 end
@@ -98,16 +97,24 @@ get %r{/idconvert/((S|E|D)R(.)\d{6})\.to_(.+)$} do |origin, db, id_type, dest|
 
            when "run"
              converter.run
+             
+           when "all"
+             converter.all
+           
            end
-  JSON.dump(result)  
+  JSON.dump(result)
 end
 
 get %r{/metadata/((S|E|D)R(.)\d{6})\.(\w+)$} do |origin, db, id_type, method|
   converter = converter_gen(origin, id_type)
-  metadata_parser = get_parser(origin, converter)
+  metadata_parser = get_parser(converter)
   if metadata_parser
-    result = metagata_parser.send(method.intern)
-    JSON.dump(result)
+    result = metadata_parser.send(method.intern)
+    if result.class == (Hash or Array)
+      JSON.dump(result)
+    else
+      JSON.dump([result])
+    end
   else
     "metadata file not found."
   end
