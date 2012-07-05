@@ -120,6 +120,8 @@ get %r{/metadata/((S|E|D)R(.)\d{6})\.(\w+)$} do |origin, db, id_type, method|
       result = metadata_parser.send(method_sym)
       result = [result] unless result.class == (Hash or Array)
       JSON.dump(result)
+    elsif method_sym == :methods
+      JSON.dump(valid_methods)
     else
       "invalid method"
     end
