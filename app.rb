@@ -58,7 +58,8 @@ end
 cur_dir = File.expand_path(File.dirname(__FILE__))
 sra_accessions_path = "#{cur_dir}/SRA_Accessions"
 sra_run_members_path = "#{cur_dir}/SRA_Run_Members"
-SRAIDConverter.load_table(sra_accessions_path, sra_run_members_path)
+sra_publications_path = "#{cur_dir}/SRA_Publications"
+SRAIDConverter.load_table(sra_accessions_path, sra_run_members_path, sra_publications_path)
 
 # ROUTING
 get "/" do
@@ -98,6 +99,9 @@ get %r{/idconvert/((S|E|D)R(.)\d{6})\.to_(.+)$} do |origin, db, id_type, dest|
 
            when "run"
              converter.run
+             
+           when "pmid"
+             converter.pmid
              
            when "all"
              converter.all           
