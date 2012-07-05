@@ -54,7 +54,10 @@ module SRAIDConverter
     end
   
     def pmid
-      SRA_Publications[@submission].uniq.sort
+      pmid = self.submission.map do |sub_id|
+        SRA_Publications[sub_id]
+      end
+      pmid.flatten.select{|n| n }.uniq.sort
     end
   
     def all
@@ -99,7 +102,10 @@ module SRAIDConverter
     end
   
     def pmid
-      SRA_Publications[@submission].uniq.sort
+      pmid = self.submission.map do |sub_id|
+        SRA_Publications[sub_id]
+      end
+      pmid.flatten.select{|n| n }.uniq.sort
     end
   
     def all
@@ -144,7 +150,10 @@ module SRAIDConverter
     end
   
     def pmid
-      SRA_Publications[@submission].uniq.sort
+      pmid = self.submission.map do |sub_id|
+        SRA_Publications[sub_id]
+      end
+      pmid.flatten.select{|n| n }.uniq.sort
     end
   
     def all
@@ -189,7 +198,10 @@ module SRAIDConverter
     end
   
     def pmid
-      SRA_Publications[@submission].uniq.sort
+      pmid = self.submission.map do |sub_id|
+        SRA_Publications[sub_id]
+      end
+      pmid.flatten.select{|n| n }.uniq.sort
     end
   
     def all
@@ -234,7 +246,10 @@ module SRAIDConverter
     end
   
     def pmid
-      SRA_Publications[@submission].uniq.sort
+      pmid = self.submission.map do |sub_id|
+        SRA_Publications[sub_id]
+      end
+      pmid.flatten.select{|n| n }.uniq.sort
     end
   
     def all
