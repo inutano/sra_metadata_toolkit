@@ -65,18 +65,19 @@ get "/" do
   "SRA METADATA TOOLKIT"
 end
 
-get %r{/fastqc/((S|E|D)RR\d{6})$} do |id, db|
+get %r{/readfile/((S|E|D)RR\d{6})$} do |id, db|
   id_head = id.slice(0,6)
   id_dir = "./fastqc/#{id_head}/#{id}"
-  read_files = Dir.entries(id_dir).select{|f| f =~ /_fastqc$/ }
+  fastqc_files = Dir.entries(id_dir).select{|f| f =~ /_fastqc$/ }
+  read_files = fastqc_files.map{|f| f.gsub(/_fastqc$/,"")}
   JSON.dump(read_files)
 end
 
-get %r{/fastqc/json/((S|E|D)RR\d{6}(_|_1_|_2_)fastqc)$} do |filename, db, read|
+get %r{/fastqc/json/((S|E|D)RR\d{6}(|_1|_2))$} do |filename, db, read|
   id = filename.slice(0,9)
   id_head = id.slice(0,6)
-  result_text_path = "./fastqc/#{id_head}/#{id}/#{filename}/fastqc_data.txt"
-  f = FastQCparser.new(result_text_path)
+  result_path = "./fastqc/#{id_head}/#{id}/#{filename}_fastqc/fastqc_data.txt"
+  f = FastQCparser.new(result_path)
   JSON.dump(f.all)
 end
 
@@ -99,8 +100,7 @@ get %r{/idconvert/((S|E|D)R(.)\d{6})\.to_(.+)$} do |origin, db, id_type, dest|
              converter.run
              
            when "all"
-             converter.all
-           
+             converter.all           
            end
   JSON.dump(result)
 end
@@ -109,11 +109,14 @@ get %r{/metadata/((S|E|D)R(.)\d{6})\.(\w+)$} do |origin, db, id_type, method|
   converter = converter_gen(origin, id_type)
   metadata_parser = get_parser(converter)
   if metadata_parser
-    result = metadata_parser.send(method.intern)
-    if result.class == (Hash or Array)
+    parent_methods = metadata_parser.class.superclass.methods
+    valid_methods = metadata_parser.methods - parent_methods
+    if valid_methods.include?(method)
+      result = metadata_parser.send(method.intern)
+      result = [result] unless result.class == (Hash or Array)
       JSON.dump(result)
     else
-      JSON.dump([result])
+      "invalid method"
     end
   else
     "metadata file not found."
