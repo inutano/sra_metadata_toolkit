@@ -115,8 +115,9 @@ get %r{/metadata/((S|E|D)R(.)\d{6})\.(\w+)$} do |origin, db, id_type, method|
   if metadata_parser
     parent_methods = metadata_parser.class.superclass.methods
     valid_methods = metadata_parser.methods - parent_methods
-    if valid_methods.include?(method)
-      result = metadata_parser.send(method.intern)
+    method_sym = method.intern
+    if valid_methods.include?(method_sym)
+      result = metadata_parser.send(method_sym)
       result = [result] unless result.class == (Hash or Array)
       JSON.dump(result)
     else
