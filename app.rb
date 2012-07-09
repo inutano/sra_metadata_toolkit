@@ -34,24 +34,45 @@ def get_parser(converter)
   case $~[:type]
   when "A"
     xml = prefix + ".submission.xml"
-    SubmissionParser.new(origin_id, xml) if File.exist?(xml)
+    SRAMetadataParser::Submission.new(origin_id, xml) if File.exist?(xml)
 
   when "P"
     xml = prefix + ".study.xml"
-    StudyParser.new(origin_id, xml) if File.exist?(xml)
+    SRAMetadataParser::Study.new(origin_id, xml) if File.exist?(xml)
 
   when "X"
     xml = prefix + ".experiment.xml"
-    ExperimentParser.new(origin_id, xml) if File.exist?(xml)
+    SRAMetadataParser::Experiment.new(origin_id, xml) if File.exist?(xml)
 
   when "S"
     xml = prefix + ".sample.xml"
-    SampleParser.new(origin_id, xml) if File.exist?(xml)
+    SRAMetadataParser::Sample.new(origin_id, xml) if File.exist?(xml)
 
   when "R"
     xml = prefix + ".run.xml"
-    RunParser.new(origin_id, xml) if File.exist?(xml)
+    SRAMetadataParser::Run.new(origin_id, xml) if File.exist?(xml)
   end
+end
+
+module MethodValidator
+  def method_valid?(method)
+    parent_class = self.class.superclass
+    valid_method = self.methods - parent_class.methods
+    valid_method.include?(method)
+  end
+
+  def valid_methods
+    parent_class = self.class.superclass
+    self.methods - parent_class.methods
+  end
+end
+
+class FastQCParser
+  include MethodValidator
+end
+
+class SRAMetadataParser
+  include MethodValidator
 end
 
 # INITIALIZE MODULE SRAIDConverter
@@ -74,12 +95,23 @@ get %r{/readfile/((S|E|D)RR\d{6})$} do |id, db|
   JSON.dump(read_files)
 end
 
-get %r{/fastqc/json/((S|E|D)RR\d{6}(|_1|_2))$} do |filename, db, read|
+get %r{/fastqc/json/((S|E|D)RR\d{6}(|_1|_2))\.(\w+)$} do |filename, db, read, method_str|
   id = filename.slice(0,9)
   id_head = id.slice(0,6)
   result_path = "./fastqc/#{id_head}/#{id}/#{filename}_fastqc/fastqc_data.txt"
-  f = FastQCparser.new(result_path)
-  JSON.dump(f.all)
+  if File.exist?(result_path)
+    fparser = FastQCParser.new(result_path)
+    method = method_str.intern
+    if fparser.method_valid?(method)
+      result = fparser.send(method)
+      JSON.dump(result)
+    elsif method == :methods
+      result = fparser.valid_methods
+      JSON.dump(result)
+    end
+  else
+    "no result"
+  end
 end
 
 get %r{/idconvert/((S|E|D)R(.)\d{6})\.to_(.+)$} do |origin, db, id_type, dest|
@@ -109,21 +141,18 @@ get %r{/idconvert/((S|E|D)R(.)\d{6})\.to_(.+)$} do |origin, db, id_type, dest|
   JSON.dump(result)
 end
 
-get %r{/metadata/((S|E|D)R(.)\d{6})\.(\w+)$} do |origin, db, id_type, method|
+get %r{/metadata/((S|E|D)R(.)\d{6})\.(\w+)$} do |origin, db, id_type, method_str|
   converter = converter_gen(origin, id_type)
   metadata_parser = get_parser(converter)
   if metadata_parser
-    parent_methods = metadata_parser.class.superclass.methods
-    valid_methods = metadata_parser.methods - parent_methods
-    method_sym = method.intern
-    if valid_methods.include?(method_sym)
-      result = metadata_parser.send(method_sym)
+    method = method_str.intern
+    if metadata_parser.method_valid?(method)
+      result = metadata_parser.send(method)
       result = [result] unless result.class == (Hash or Array)
       JSON.dump(result)
-    elsif method_sym == :methods
-      JSON.dump(valid_methods)
-    else
-      "invalid method"
+    elsif method == :methods
+      result = metadata_parser.valid_methods
+      JSON.dump(result)
     end
   else
     "metadata file not found."
