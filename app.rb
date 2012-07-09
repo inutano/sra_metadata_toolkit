@@ -67,14 +67,6 @@ module MethodValidator
   end
 end
 
-class FastQCParser
-  include MethodValidator
-end
-
-class SRAMetadataParser
-  include MethodValidator
-end
-
 # INITIALIZE MODULE SRAIDConverter
 cur_dir = File.expand_path(File.dirname(__FILE__))
 sra_accessions_path = "#{cur_dir}/SRA_Accessions"
@@ -101,6 +93,7 @@ get %r{/fastqc/json/((S|E|D)RR\d{6}(|_1|_2))\.(\w+)$} do |filename, db, read, me
   result_path = "./fastqc/#{id_head}/#{id}/#{filename}_fastqc/fastqc_data.txt"
   if File.exist?(result_path)
     fparser = FastQCParser.new(result_path)
+    fparser.extend(MethodValidator)
     method = method_str.intern
     if fparser.method_valid?(method)
       result = fparser.send(method)
@@ -146,6 +139,7 @@ get %r{/metadata/((S|E|D)R(.)\d{6})\.(\w+)$} do |origin, db, id_type, method_str
   metadata_parser = get_parser(converter)
   if metadata_parser
     method = method_str.intern
+    metadata_parser.extend(MethodValidator)
     if metadata_parser.method_valid?(method)
       result = metadata_parser.send(method)
       result = [result] unless result.class == (Hash or Array)
