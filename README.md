@@ -4,8 +4,6 @@ hope they won't update XML format during I'm writing this.
 
 ## Table of Contents
 
-- - - - - -
-
 - 1 What's this
 - 2 How to use
   - 2.1 SRA ID Converter
@@ -18,15 +16,11 @@ hope they won't update XML format during I'm writing this.
 
 ## 1 What's this
 
-- - - - - -
-
 SRA Metadata toolkit is the  project and the web service to use Metadata of the NGSeq data archived in Sequence 
 Read Archive. It allows command-line access to get JSON format data parsed as specified with query. It also 
 provides quality summary of each sequence data. Details and updates are [here](http://g86.dbcls.jp/chateautogo).
 
 ## 2 How to use
-
-- - - - - -
 
 User's can get a part or whole set of metadata by specifying with query.
 
@@ -102,12 +96,13 @@ example:
     /readfile/DRR000001
       => ["DRR000001_1","DRR000001_2","DRR000001"]
 
-### 3 Development
+## 3 Development
 
-#### 3.1 About this project
+### 3.1 About this project
 
-The main contributor of this project is Tazro Ohta, and this project is going with only one person. Wow.
+The main contributor of this project is me, Tazro Ohta, and that's all. Wow.
+This project is a part of large-scale nucleotide sequence archive team in [DBCLS](http://dbclr.rois.ac.jp).
 
-#### 3.2 License
+### 3.2 License
 
 All code is shared under the Beer-ware License.
