@@ -129,16 +129,37 @@ module SRAMetadataParser
       @exp.css("TITLE").inner_text
     end
     
+    def study_accession
+      @exp.css("STUDY_REF").attr("accession").value.to_s
+    end
+    
+    def study_refname
+      @exp.css("STUDY_REF").attr("refname").value.to_s
+    end
+    
     def design_description
       @exp.css("DESIGN_DESCRIPTION").inner_text
     end
     
-    def experiment_detail
-      { title: self.title,
-        design_description: self.design_description }
+    def sample_accession
+      @exp.css("SAMPLE_DESCRIPTOR").first.attr("accession").value.to_s
     end
     
-    # LIBRARY INFORMATION
+    def sample_refname
+      @exp.css("SAMPLE_DESCRIPTOR").first.attr("refname").value.to_s
+    end
+    
+    def experiment_detail
+      { center_name: self.center_name,
+        title: self.title,
+        study_accession: self.study_accession,
+        study_refname: self.study_refname,
+        design_description: self.design_description,
+        sample_accession: self.sample_accession,
+        sample_refname: self.sample_refname }
+    end
+    
+    # LIBRARY DESCRIPTION
     def library_name
       @exp.css("LIBRARY_NAME").inner_text
     end
@@ -156,7 +177,19 @@ module SRAMetadataParser
     end
     
     def library_layout
-      @exp.css("LIBRARY_LAYOUT").first.name
+      @exp.css("LIBRARY_LAYOUT").first.children[1].name
+    end
+    
+    def library_orientation
+      @exp.css("LIBRARY_LAYOUT").first.children[1].attr("ORIENTATION").to_s
+    end
+
+    def library_nominal_length
+      @exp.css("LIBRARY_LAYOUT").first.children[1].attr("NOMINAL_LENGTH").to_s
+    end
+
+    def library_nominal_sdev
+      @exp.css("LIBRARY_LAYOUT").first.children[1].attr("NOMINAL_SDEV").to_s
     end
     
     def library_construction_protocol
@@ -169,6 +202,9 @@ module SRAMetadataParser
         library_source: self.library_source,
         library_selection: self.library_selection,
         library_layout: self.library_layout,
+        library_orientation: self.library_orientation,
+        library_nominal_length: self.library_nominal_length,
+        library_nominal_sdev: self.library_nominal_sdev,
         library_construction_protocol: self.library_construction_protocol }
     end
   
@@ -179,6 +215,14 @@ module SRAMetadataParser
     
     def instrument_model
       @exp.css("INSTRUMENT_MODEL").inner_text
+    end
+    
+    def cycle_sequence
+      @exp.css("CYCLE_SEQUENCE").inner_text
+    end
+    
+    def cycle_count
+      @exp.css("CYCLE_COUNT").inner_text
     end
     
     def flow_sequence
@@ -196,11 +240,13 @@ module SRAMetadataParser
     def platform_information
       { platform: self.platform,
         instrument_model: self.instrument_model,
-        key_sequence: self.key_sequence,
+        cycle_sequence: self.cycle_sequence,
+        cycle_count: self.cycle_count,
+        flow_sequence: self.flow_sequence,
         flow_count: self.flow_count,
-        flow_sequence: self.flow_sequence }
+        key_sequence: self.key_sequence }
     end
-  
+    
     # PROCESSING
     def base_calls
       { sequence_space: @exp.css("SEQUENCE_SPACE").inner_text,
