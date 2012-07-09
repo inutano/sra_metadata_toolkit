@@ -3,7 +3,7 @@
 require "nokogiri"
 require "time"
 
-class SRAMetadataParser  
+module SRAMetadataParser  
   class Submission
     def initialize(id, xml)
       @nkgr = Nokogiri::XML(open(xml))
