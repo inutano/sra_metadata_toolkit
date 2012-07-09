@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-class FastQCparser
+class FastQCParser
   def initialize(fastqc_result)
     @txt = open(fastqc_result).read
   end
@@ -195,7 +195,7 @@ if __FILE__ == $0
   require "ap" # for debug
   
   file = "/Volumes/Macintosh HD 2/sra_metadata/fastqc/SRR001/SRR001001/SRR001001_1_fastqc/fastqc_data.txt"
-  f = FastQCparser.new(file)
+  f = FastQCParser.new(file)
   ap f.all
   
   ap "total mean"
