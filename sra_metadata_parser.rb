@@ -116,7 +116,7 @@ module SRAMetadataParser
     def initialize(id, xml)
       @nkgr = Nokogiri::XML(open(xml))
       @exp = @nkgr.css("EXPERIMENT").select{|n| n.attr("accession") == id }.first
-      raise NameError, "experiment id not found" unless @experiment
+      raise NameError, "experiment id not found" unless @exp
     end
     
     # EXPERIMENT DETAIL
