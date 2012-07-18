@@ -8,6 +8,7 @@ module SRAMetadataParser
     def initialize(id, xml)
       @nkgr = Nokogiri::XML(open(xml))
       @submission = @nkgr.css("SUBMISSION").select{|n| n.attr("accession") == id }.first
+      raise NameError, "submission id not found" unless @submission
     end
     
     def alias
@@ -44,6 +45,7 @@ module SRAMetadataParser
     def initialize(id, xml)
       @nkgr = Nokogiri::XML(open(xml))
       @study = @nkgr.css("STUDY").select{|n| n.attr("accession") == id }.first
+      raise NameError, "study id not found" unless @study
     end
     
     def alias
@@ -114,6 +116,7 @@ module SRAMetadataParser
     def initialize(id, xml)
       @nkgr = Nokogiri::XML(open(xml))
       @exp = @nkgr.css("EXPERIMENT").select{|n| n.attr("accession") == id }.first
+      raise NameError, "experiment id not found" unless @experiment
     end
     
     # EXPERIMENT DETAIL
@@ -304,6 +307,7 @@ module SRAMetadataParser
     def initialize(id, xml)
       @nkgr = Nokogiri::XML(open(xml))
       @sample = @nkgr.css("SAMPLE").select{|n| n.attr("accession") == id }.first
+      raise NameError, "sample id not found" unless @sample
     end
     
     # SAMPLE DETAIL
@@ -384,6 +388,7 @@ module SRAMetadataParser
     def initialize(id, xml)
       @nkgr = Nokogiri::XML(open(xml))
       @run = @nkgr.css("RUN").select{|n| n.attr("accession").to_s == id }.first
+      raise NameError, "run id not found" unless @run
     end
     
     # RUN DETAIL
