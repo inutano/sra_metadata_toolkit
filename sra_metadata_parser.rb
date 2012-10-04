@@ -29,7 +29,9 @@ module SRAMetadataParser
     
     def submission_date
       date = @submission.attr("submission_date").to_s
-      Time.parse(date)
+      if date =~ /^\d/
+        Time.parse(date)
+      end
     end
   
     def all
@@ -402,7 +404,9 @@ module SRAMetadataParser
     
     def run_date
       date = @run.attr("run_date").to_s
-      Time.parse(date) unless date.empty?
+      if date =~ /^\d/ && !date.empty?
+        Time.parse(date)
+      end
     end
     
     def instrument_name
