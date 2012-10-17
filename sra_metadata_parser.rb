@@ -433,15 +433,9 @@ module SRAMetadataParser
     # PIPELINE
     def pipeline
       @run.css("PIPE_SECTION").map do |node|
-        step_index = node.css("STEP_INDEX").inner_text
-        time_step_index = Time.parse(step_index) if not step_index.empty?
-        
-        prev_step_index = node.css("PREV_STEP_INDEX").inner_text
-        time_prev_step_index = Time.parse(prev_step_index) if not prev_step_index.empty?
-        
         { section_name: node.attr("secrion_name").to_s,
-          step_index: time_step_index,
-          prev_step_index: time_prev_step_index,
+          step_index: node.css("STEP_INDEX").inner_text,
+          prev_step_index: node.css("PREV_STEP_INDEX").inner_text,
           program: node.css("PROGRAM").inner_text,
           version: node.css("VERSION").inner_text }
       end
