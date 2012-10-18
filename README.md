@@ -1,6 +1,7 @@
 # SRA Metadata toolkit
 
-hope they won't update XML format during I'm writing this.
+currently hosting at http://g86.dbcls.jp/sra as a beta version.
+(sometimes responce is very slow, sorry!)
 
 ## Table of Contents
 
