@@ -80,4 +80,12 @@ module ERAMetadataParser
         attribute: self.attribute }
     end
   end
+  
+  class Study
+    def initialize(id, xml)
+      @nkgr = Nokogiri::XML(xml)
+    end
+    
+    def 
+  end
 end
