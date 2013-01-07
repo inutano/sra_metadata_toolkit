@@ -43,7 +43,25 @@ class FastQCParser
   def sequence_length
     base = self.basic_statistics
     base =~ /Sequence length\t(.+?)\t/m
-    $1.to_i
+    $1
+  end
+  
+  def min_length
+    len = self.sequence_length
+    if len =~ /\d-\d/
+      len.sub(/-\d+$/,"").to_i
+    else
+      len.to_i
+    end
+  end
+
+  def max_length
+    len = self.sequence_length
+    if len =~ /\d-\d/
+      len.sub(/^\d+-/,"").to_i
+    else
+      len.to_i
+    end
   end
   
   def percent_gc
@@ -204,4 +222,9 @@ if __FILE__ == $0
   ap f.total_n_content
   ap "total duplication percentage"
   ap f.total_duplicate_percentage
+  
+  ap "min length"
+  ap f.min_length
+  ap "max length"
+  ap f.max_length
 end
