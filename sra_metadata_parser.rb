@@ -135,11 +135,11 @@ module SRAMetadataParser
     end
     
     def study_accession
-      @exp.css("STUDY_REF").attr("accession").value.to_s
+      @exp.css("STUDY_REF").attr("accession").to_s
     end
     
     def study_refname
-      @exp.css("STUDY_REF").attr("refname").value.to_s
+      @exp.css("STUDY_REF").attr("refname").to_s
     end
     
     def design_description
@@ -147,11 +147,11 @@ module SRAMetadataParser
     end
     
     def sample_accession
-      @exp.css("SAMPLE_DESCRIPTOR").first.attr("accession").value.to_s
+      @exp.css("SAMPLE_DESCRIPTOR").first.attr("accession").to_s
     end
     
     def sample_refname
-      @exp.css("SAMPLE_DESCRIPTOR").first.attr("refname").value.to_s
+      @exp.css("SAMPLE_DESCRIPTOR").first.attr("refname").to_s
     end
     
     def experiment_detail
