@@ -140,7 +140,7 @@ class FastQCParser
   def total_n_content
     per_base = self.per_base_n_content
     v = per_base.map{|c| c[1] }
-    v.map{|n| "%0.20" % n.to_f }.reduce(:+) / v.size
+    v.map{|n| "%0.20f" % n.to_f }.reduce(:+) / v.size
   end
   
   def sequence_length_distribution
