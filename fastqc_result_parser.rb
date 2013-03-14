@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 class FastQCParser
-  def initialize(fastqc_result)
-    @txt = open(fastqc_result).read
+  def initialize(fastqc_data_path)
+    @txt = open(fastqc_data_path).read
   end
   
   def basic_statistics
@@ -86,6 +86,12 @@ class FastQCParser
     per_base_mean.reduce(:+) / line_num
   end
   
+  def normalized_phred_score
+    per_base = self.per_base_sequence_quality
+    per_base_median = per_base.map{|c| c[3].to_f }
+    per_base_median.reduce(:+) / per_base_median.length
+  end
+  
   def per_sequence_quality_scores
     # returns 2d array
     # column: quality, count
@@ -133,18 +139,8 @@ class FastQCParser
   
   def total_n_content
     per_base = self.per_base_n_content
-    per_base_count = per_base.map{|c| c[1] }
-    fixed = per_base_count.map do |num|
-      if num =~ /E/
-        num =~ /(^.+)E-(.)/
-        b = $1.to_f
-        nn = $2.to_i
-        b * (0.1 ** nn).round(4)
-      else
-        num.to_f
-      end
-    end
-    fixed.reduce(:+) / fixed.length
+    v = per_base.map{|c| c[1] }
+    v.map{|n| "%0.20" % n.to_f }.reduce(:+) / v.size
   end
   
   def sequence_length_distribution
@@ -218,6 +214,8 @@ if __FILE__ == $0
   
   ap "total mean"
   ap f.total_mean_sequence_qual
+  ap "normalized phred"
+  ap f.normalized_phred_score
   ap "total n content"
   ap f.total_n_content
   ap "total duplication percentage"
