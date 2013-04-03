@@ -81,14 +81,13 @@ class FastQCParser
   
   def total_mean_sequence_qual
     per_base = self.per_base_sequence_quality
-    per_base_mean = per_base.map{|c| c[1].to_f }
-    line_num = per_base_mean.length
-    per_base_mean.reduce(:+) / line_num
+    v = per_base.map{|c| c[1].to_f }
+    v.reduce(:+) / v.size
   end
   
   def normalized_phred_score
     per_base = self.per_base_sequence_quality
-    per_base_median = per_base.map{|c| c[3].to_f }
+    per_base_median = per_base.map{|c| c[2].to_f }
     per_base_median.reduce(:+) / per_base_median.length
   end
   
@@ -139,8 +138,8 @@ class FastQCParser
   
   def total_n_content
     per_base = self.per_base_n_content
-    v = per_base.map{|c| c[1] }
-    v.map{|n| "%0.20f" % n.to_f }.reduce(:+) / v.size
+    v = per_base.map{|c| c[1].to_f }
+    v.reduce(:+) / v.size
   end
   
   def sequence_length_distribution
@@ -208,7 +207,8 @@ end
 if __FILE__ == $0
   require "ap" # for debug
   
-  file = "/Volumes/Macintosh HD 2/sra_metadata/fastqc/SRR001/SRR001001/SRR001001_1_fastqc/fastqc_data.txt"
+  #file = "/Volumes/Macintosh HD 2/sra_metadata/fastqc/SRR001/SRR001001/SRR001001_1_fastqc/fastqc_data.txt"
+  file = "/Users/inutano/project/statistics_sra/fastqc_data/SRR515/SRR515734/SRR515734_1_fastqc/fastqc_data.txt"
   f = FastQCParser.new(file)
   ap f.all
   
