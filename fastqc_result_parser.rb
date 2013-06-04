@@ -182,10 +182,9 @@ class FastQCParser
         [length.to_i] * count
       end
     end
-    total = self.total_sequences
-    quot = total / 2
     sorted = array.flatten.sort
-    if !total.even?
+    quot = sorted.size / 2
+    if !sorted.size.even?
       sorted[quot + 1]
     else
       f = sorted[quot]
