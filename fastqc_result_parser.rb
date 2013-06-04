@@ -151,7 +151,7 @@ class FastQCParser
     mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }
   end
   
-  def average_sequence_length
+  def mean_sequence_length
     distribution = self.sequence_length_distribution
     sum = distribution.map do |length_count|
       length = length_count[0]
@@ -273,7 +273,7 @@ if __FILE__ == $0
   ap f.sequence_length_distribution.map{|n| n[1].to_i }.reduce(:+)
   
   ap "average sequence length"
-  ap f.average_sequence_length
+  ap f.mean_sequence_length
   
   ap "median sequence length"
   ap f.median_sequence_length
