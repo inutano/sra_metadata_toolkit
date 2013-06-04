@@ -151,6 +151,49 @@ class FastQCParser
     mline.select{|l| l =~ /^\d/ }.map{|c| c.split("\t") }
   end
   
+  def average_sequence_length
+    distribution = self.sequence_length_distribution
+    sum = distribution.map do |length_count|
+      length = length_count[0]
+      count = length_count[1].to_i
+      if length =~ /\d-\d/
+        f = length.sub(/-\d+$/,"").to_i
+        b = length.sub(/^\d+-/,"").to_i
+        mean = (f + b) / 2
+        mean * count
+      else
+        length.to_i * count
+      end
+    end
+    sum.reduce(:+) / self.total_sequences
+  end
+  
+  def median_sequence_length
+    distribution = self.sequence_length_distribution
+    array = distribution.map do |length_count|
+      length = length_count[0]
+      count = length_count[1].to_i
+      if length =~ /\d-\d/
+        f = length.sub(/-\d+$/,"").to_i
+        b = length.sub(/^\d+-/,"").to_i
+        mean = (f + b) / 2
+        [mean] * count
+      else
+        [length.to_i] * count
+      end
+    end
+    total = self.total_sequences
+    quot = total / 2
+    sorted = array.flatten.sort
+    if !total.even?
+      sorted[quot + 1]
+    else
+      f = sorted[quot]
+      b = sorted[quot + 1]
+      (f + b) / 2
+    end
+  end
+  
   def sequence_duplication_levels
     # returns 2d array
     # column: duplication level, relative count
@@ -207,8 +250,8 @@ end
 if __FILE__ == $0
   require "ap" # for debug
   
-  #file = "/Volumes/Macintosh HD 2/sra_metadata/fastqc/SRR001/SRR001001/SRR001001_1_fastqc/fastqc_data.txt"
-  file = "/Users/inutano/project/statistics_sra/fastqc_data/SRR515/SRR515734/SRR515734_1_fastqc/fastqc_data.txt"
+  file = "/Volumes/Macintosh HD 2/sra_metadata/fastqc/SRR001/SRR001001/SRR001001_1_fastqc/fastqc_data.txt"
+  #file = "/Users/inutano/project/statistics_sra/fastqc_data/SRR515/SRR515734/SRR515734_1_fastqc/fastqc_data.txt"
   f = FastQCParser.new(file)
   ap f.all
   
@@ -225,4 +268,13 @@ if __FILE__ == $0
   ap f.min_length
   ap "max length"
   ap f.max_length
+  
+  ap "total count on read length distribution"
+  ap f.sequence_length_distribution.map{|n| n[1].to_i }.reduce(:+)
+  
+  ap "average sequence length"
+  ap f.average_sequence_length
+  
+  ap "median sequence length"
+  ap f.median_sequence_length
 end
