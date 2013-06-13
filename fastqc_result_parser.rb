@@ -3,6 +3,8 @@
 class FastQCParser
   def initialize(fastqc_data_path)
     @txt = open(fastqc_data_path).read
+    @txt =~ /(>>Basic Statistics.*?)>>END_MODULE/m
+    @basic_stat = $1
   end
   
   def basic_statistics
@@ -11,38 +13,32 @@ class FastQCParser
   end
   
   def filename
-    base = self.basic_statistics
-    base =~ /Filename\t(.+?)\t/m
+    @basic_stat =~ /Filename\t(.+?)\t/m
     $1
   end
   
   def file_type
-    base = self.basic_statistics
-    base =~ /File type\t(.+?)\t/m
+    @basic_stat =~ /File type\t(.+?)\t/m
     $1
   end
   
   def encoding
-    base = self.basic_statistics
-    base =~ /Encoding\t(.+?)\t/m
+    @basic_stat =~ /Encoding\t(.+?)\t/m
     $1
   end
   
   def total_sequences
-    base = self.basic_statistics
-    base =~ /Total Sequences\t(.+?)\t/m
+    @basic_stat =~ /Total Sequences\t(.+?)\t/m
     $1.to_i
   end
   
   def filtered_sequences
-    base = self.basic_statistics
-    base =~ /Filtered Sequences\t(.+?)\t/m
+    @basic_stat =~ /Filtered Sequences\t(.+?)\t/m
     $1.to_i
   end
   
   def sequence_length
-    base = self.basic_statistics
-    base =~ /Sequence length\t(.+?)\t/m
+    @basic_stat =~ /Sequence length\t(.+?)\t/m
     $1
   end
   
@@ -65,8 +61,7 @@ class FastQCParser
   end
   
   def percent_gc
-    base = self.basic_statistics
-    base =~ /\%GC\t(.+?)\t/m
+    @basic_stat =~ /\%GC\t(.+?)\t/m
     $1.to_f
   end
   
@@ -155,17 +150,17 @@ class FastQCParser
     distribution = self.sequence_length_distribution
     sum = distribution.map do |length_count|
       length = length_count[0]
-      count = length_count[1].to_i
+      count = length_count[1].to_f
       if length =~ /\d-\d/
-        f = length.sub(/-\d+$/,"").to_i
-        b = length.sub(/^\d+-/,"").to_i
-        mean = (f + b) / 2
+        f = length.sub(/-\d+$/,"").to_f
+        b = length.sub(/^\d+-/,"").to_f
+        mean = (f + b) / 2 + 1
         mean * count
       else
         length.to_i * count
       end
     end
-    sum.reduce(:+) / self.total_sequences
+    sum.reduce(:+).to_f / self.total_sequences
   end
   
   def median_sequence_length
@@ -185,10 +180,10 @@ class FastQCParser
     sorted = array.flatten.sort
     quot = sorted.size / 2
     if !sorted.size.even?
-      sorted[quot + 1]
+      sorted[quot]
     else
       f = sorted[quot]
-      b = sorted[quot + 1]
+      b = sorted[quot - 1]
       (f + b) / 2
     end
   end
