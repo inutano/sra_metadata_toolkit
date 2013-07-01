@@ -127,7 +127,7 @@ class FastQCParser
     distribution = self.sequence_length_distribution
     sum = distribution.map do |length_count|
       length = length_count[0]
-      count = length_count[1].to_i
+      count = length_count[1].to_f
       if length =~ /\d-\d/
         f = length.sub(/-\d+$/,"").to_i
         b = length.sub(/^\d+-/,"").to_i
@@ -137,7 +137,7 @@ class FastQCParser
         length.to_i * count
       end
     end
-    sum.reduce(:+).to_f / self.total_sequences
+    sum.reduce(:+) / self.total_sequences
   end
   
   def median_sequence_length
