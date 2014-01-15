@@ -64,7 +64,7 @@ class SeqSpecUtils
   
   def create_pdir(fastqc_id)
     pdir_path = File.join(@unzipped_path, fastqc_id.slice(0..5))
-    sh "mkdir #{pdir_path}"
+    sh "mkdir #{pdir_path}" if !File.exist?(pdir_path)
   end
 end
 
@@ -72,7 +72,7 @@ if __FILE__ == $0
   src = "/Users/inutano/src/sra"
   zip_path = src + "/fastqc_zip_from_ddbj"
   unzip_path = src + "/fastqc_unzipped"
-
+  
   origin = "ddbj:backup/fastqc_result/"
   SeqSpecUtils.rsync(origin, zip_path)
 
