@@ -12,10 +12,10 @@ class SeqSpecUtils
   def initialize(zipped_dir, unzipped_dir)
     @zipped_path = File.expand_path(zipped_dir)
     @unzipped_path = File.expand_path(unzipped_dir)
-    @to_be_unzipped = to_be_unzipped
+    @unziplist = unziplist
   end
   
-  def to_be_unzipped
+  def unziplist
     # return an array of fastqc_id (DRR000001_1_fastqc, DRR1000001_fastqc, etc.)
     zip, unzip = [@zipped_path, @unzipped_path].map do |dirpath|
       sym = dirpath == @zipped_path ? :zipped : :unzipped
@@ -31,7 +31,7 @@ class SeqSpecUtils
   
   def unzip_all
     threads = []
-    @to_be_unzipped.each do |fastqc_id|
+    @unziplist.each do |fastqc_id|
       th = Thread.new do
         unzip(fastqc_id)
       end
@@ -50,18 +50,17 @@ class SeqSpecUtils
     sh "cd #{dest} && cp #{origin}/#{fname} . && unzip #{fname} && rm -f #{fname}"
   end
   
+  def create_pdir
+    list = @unziplist.map{|fqcid| fastqc_id_to_dir(@unzipped_path, fqcid) }.uniq
+    list.each do |path|
+      sh "mkdir -p #{path}" if !File.exist?(path)
+    end
+  end
+
   def fastqc_id_to_dir(pdir, fastqc_id)
     id = fastqc_id.gsub(/(|_.)_fastqc$/,"")
     idx = id.sub(/...$/,"")
     File.join(pdir, idx, id)
-  end
-  
-  def create_pdir
-    list = @to_be_unzipped.map{|id| id.sub(/(|_.)_fastqc$/,"").sub(/...$/,"") }.uniq
-    list.each do |idx|
-      pdir_path = File.join(@unzipped_path, idx)
-      sh "mkdir #{pdir_path}" if !File.exist?(pdir_path)
-    end
   end
 end
 
