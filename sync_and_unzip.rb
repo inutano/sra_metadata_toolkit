@@ -16,6 +16,7 @@ class SeqSpecUtils
   end
   
   def to_be_unzipped
+    # return an array of fastqc_id (DRR000001_1_fastqc, DRR1000001_fastqc, etc.)
     zip, unzip = [@zipped_path, @unzipped_path].map do |dirpath|
       sym = dirpath == @zipped_path ? :zipped : :unzipped
       get_files(sym, dirpath).map{|p| p.split("/").last.gsub(".zip","") }
@@ -51,32 +52,30 @@ class SeqSpecUtils
   
   def fastqc_id_to_dir(pdir, fastqc_id)
     id = fastqc_id.gsub(/(|_.)_fastqc$/,"")
-    idx = id.slice(0..5)
+    idx = id.sub(/...$/,"")
     File.join(pdir, idx, id)
   end
   
-  def create_all_pdir
-    list = @to_be_unzipped.map{|id| id.slice(0..5) }.uniq
-    list.each do |id|
-      create_pdir(id)
+  def create_pdir
+    list = @to_be_unzipped.map{|id| id.sub(/(|_.)_fastqc$/,"").sub(/...$/,"") }.uniq
+    list.each do |idx|
+      pdir_path = File.join(@unzipped_path, idx)
+      sh "mkdir #{pdir_path}" if !File.exist?(pdir_path)
     end
-  end
-  
-  def create_pdir(fastqc_id)
-    pdir_path = File.join(@unzipped_path, fastqc_id.slice(0..5))
-    sh "mkdir #{pdir_path}" if !File.exist?(pdir_path)
   end
 end
 
 if __FILE__ == $0
-  src = "/Users/inutano/src/sra"
+  src = "~/src/sra"
   zip_path = src + "/fastqc_zip_from_ddbj"
   unzip_path = src + "/fastqc_unzipped"
   
-  origin = "ddbj:backup/fastqc_result/"
-  SeqSpecUtils.rsync(origin, zip_path)
+  if ARGV.first == "--sync"
+    origin = "ddbj:backup/fastqc_result/"
+    SeqSpecUtils.rsync(origin, zip_path)
+  end
 
   ssu = SeqSpecUtils.new(zip_path, unzip_path)
-  ssu.create_all_pdir
+  ssu.create_pdir
   ssu.unzip_all
 end
