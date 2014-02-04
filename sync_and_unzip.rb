@@ -1,4 +1,5 @@
 # :)
+# using Enumerable#lazy, only for Ruby 2.0
 
 require "rake"
 
@@ -30,15 +31,15 @@ class SeqSpecUtils
   end
   
   def unzip_all
-    threads = []
-    @unziplist.each do |fastqc_id|
-      th = Thread.new do
-        unzip(fastqc_id)
-      end
-      threads << th
+    threads = @unziplist.lazy.map{|id| unzip_task(id) }
+    threads.each_slice(12).each do |group|
+      group.each{|t| t.join }
     end
-    threads.each do |th|
-      th.join
+  end
+  
+  def unzip_task(fastqc_id)
+    Thread.new do
+      unzip(fastqc_id)
     end
   end
   
