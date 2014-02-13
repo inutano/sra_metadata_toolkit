@@ -55,7 +55,8 @@ if __FILE__ == $0
     puts "unexpected zip files: "
     puts FastqcHandler.unexpected_zip_files(base)
   elsif ARGV.include?("--unzip")
-    puts "files unzip failed: "
-    puts FastqcHandler.unzip_failed(base)
+    fname = "./files_unzip_failed_#{Time.now.strftime("%Y%m%d-%H%M%S")}"
+    puts "files unzip failed saved in #{fname}"
+    open(fname,"w"){|f| f.puts(FastqcHandler.unzip_failed(base)) }
   end
 end

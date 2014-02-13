@@ -15,6 +15,7 @@ class SeqSpecUtils
     @unzipped_path = File.expand_path(unzipped_dir)
     @unziplist = unziplist
   end
+  attr_accessor :unziplist
   
   def unziplist
     # return an array of fastqc_id (DRR000001_1_fastqc, DRR1000001_fastqc, etc.)
@@ -48,7 +49,9 @@ class SeqSpecUtils
       fastqc_id_to_dir(path, fastqc_id)
     end
     fname = fastqc_id + ".zip"
-    sh "cd #{dest} && cp #{origin}/#{fname} . && unzip #{fname} && rm -f #{fname}"
+    sh "cd #{dest} && cp #{origin}/#{fname} . && unzip #{fname} 2> /dev/null && rm -f #{fname}" do |ok, res|
+      puts fname if !ok
+    end
   end
   
   def create_pdir
@@ -78,4 +81,5 @@ if __FILE__ == $0
   ssu = SeqSpecUtils.new(zip_path, unzip_path)
   ssu.create_pdir
   ssu.unzip_all
+  puts "\#unzipped: " + ssu.unziplist.size.to_s
 end
