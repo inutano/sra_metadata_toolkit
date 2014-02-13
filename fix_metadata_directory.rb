@@ -3,14 +3,16 @@
 require "fileutils"
 
 if __FILE__ == $0
-  origin = ARGV.first
-  exit 1 unless File.exist?(origin) or File.directory?(origin)
+  input_path = ARGV.first
+  exit 1 unless File.exist?(input_path) or File.directory?(input_path)
+  origin = File.expand_path(input_path)
   origin_dirs = Dir.entries(origin).select{|f| f =~ /^.RA\d{6}$/ }
-  prefix = origin_dirs.map{|f| f.slice(0,6) }.uniq
-  prefix.each do |p|
-    moveto = "./#{origin}/" + p
-    tobemoved = origin_dirs.select{|f| f =~ /^#{p}/ }.map{|f| "./#{origin}/" + f }
+  prefix = origin_dirs.map{|f| f.gsub(/...$/,"") }.uniq
+  prefix.each do |pfx|
+    moveto = File.join(origin, pfx)
+    files_matched = origin_dir.select{|f| f.gsub(/\d{3}$/,"") == pfx }
+    paths_matched = files_matched.map{|f| File.join(origin, f) }
     FileUtils.mkdir(moveto)
-    FileUtils.mv(tobemoved,moveto)
+    FileUtils.mv(paths_matched, moveto)
   end
 end
