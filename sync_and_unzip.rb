@@ -7,7 +7,7 @@ class SeqSpecUtils
   include Rake::DSL
   
   def self.rsync(origin, dest)
-    sh "/usr/bin/rsync -avz #{origin} #{dest}"
+    `/usr/bin/rsync -avz #{origin} #{dest}`
   end
   
   def initialize(zipped_dir, unzipped_dir)
