@@ -13,6 +13,10 @@ module SRAMetadataParser
     def alias
       @submission.attr("alias").to_s
     end
+    
+    def accession
+      @submission.attr("accession").to_s
+    end
   
     def submission_comment
       @submission.attr("submission_comment").to_s
@@ -52,6 +56,10 @@ module SRAMetadataParser
       @study.attr("alias").to_s
     end
     
+    def accession
+      @study.attr("accession").to_s
+    end
+
     def center_name
       @study.attr("center_name").to_s
     end
@@ -123,6 +131,10 @@ module SRAMetadataParser
       @exp.attr("alias").to_s
     end
     
+    def accession
+      @exp.attr("accession").to_s
+    end
+
     def center_name
       @exp.attr("center_name").to_s
     end
@@ -312,6 +324,10 @@ module SRAMetadataParser
     def alias
       @sample.attr("alias").to_s
     end
+
+    def accession
+      @sample.attr("accession").to_s
+    end
     
     def title
       @sample.css("TITLE").inner_text
@@ -391,6 +407,10 @@ module SRAMetadataParser
     # RUN DETAIL
     def alias
       @run.attr("alias").to_s
+    end
+
+    def accession
+      @run.attr("accession").to_s
     end
     
     def center_name
