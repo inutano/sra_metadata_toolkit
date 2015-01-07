@@ -148,87 +148,41 @@ module SRAMetadataParser
   end
   
   class Sample
-    def initialize(id, xml)
-      @sample = Nokogiri::XML(open(xml)).css("SAMPLE").select{|n| n.attr("accession") == id }.first
-      raise NameError, "sample id not found" unless @sample
+    def initialize(xml, id: :all)
+      @sampleset = SRAMetadataParser::id_selector("SAMPLE", xml, id)
+      raise NameError, "ID not found" if @sampleset == []
     end
     
-    # SAMPLE DETAIL
-    def alias
-      @sample.attr("alias").to_s
-    end
-
-    def accession
-      @sample.attr("accession").to_s
-    end
-    
-    def title
-      @sample.css("TITLE").inner_text
-    end
-    
-    def sample_description
-      @sample.css("DESCRIPTION").inner_text
-    end
-    
-    def sample_detail
-      { title: self.title,
-        sample_description: self.sample_description }
-    end
-    
-    # ORGANISM INFORMATION
-    def taxon_id
-      @sample.css("TAXON_ID").inner_text
-    end
-    
-    def common_name
-      @sample.css("COMMON_NAME").inner_text
-    end
-    
-    def scientific_name
-      @sample.css("SCIENTIFIC_NAME").inner_text
-    end
-    
-    def anonymized_name
-      @sample.css("ANONYMIZED_NAME").inner_text
-    end
-    
-    def individual_name
-      @sample.css("INDIVIDUAL_NAME").inner_text
-    end
-    
-    def organism_information
-      { taxon_id: self.taxon_id,
-        common_name: self.common_name,
-        scientific_name: self.scientific_name,
-        anonymized_name: self.anonymized_name,
-        individual_name: self.individual_name }
-    end
-    
-    # SAMPLE LINKS
-    def url_link
-      @sample.css("URL_LINK").map do |node|
-        { label: node.css("LABEL").inner_text,
-          url: node.css("URL").inner_text }
+    def parse
+      @sampleset.map do |sample|
+        { 
+          accession:          sample.attr("accession").to_s,
+          alias:              sample.attr("alias").to_s,
+          title:              sample.css("TITLE").inner_text,
+          sample_description: sample.css("DESCRIPTION").inner_text,
+          
+          organism_information: { taxon_id:        sample.css("TAXON_ID").inner_text,
+                                  common_name:     sample.css("COMMON_NAME").inner_text,
+                                  scientific_name: sample.css("SCIENTIFIC_NAME").inner_text,
+                                  anonymized_name: sample.css("ANONYMIZED_NAME").inner_text,
+                                  individual_name: sample.css("INDIVIDUAL_NAME").inner_text },
+          
+          sample_links: { url_link:   sample.css("URL_LINK").map{|node|
+                                        { 
+                                          label: node.css("LABEL").inner_text,
+                                          url:   node.css("URL").inner_text,
+                                        }
+                                      },
+                        
+                          entrez_link: sample.css("ENTREZ_LINK").map{|node|
+                                         { 
+                                           db: node.css("DB").inner_text,
+                                           id: node.css("ID").inner_text,
+                                         }
+                                       },
+                        },
+        }
       end
-    end
-    
-    def entrez_link
-      @sample.css("ENTREZ_LINK").map do |node|
-        { db: node.css("DB").inner_text,
-          id: node.css("ID").inner_text }
-      end
-    end
-    
-    def sample_links
-      { url_link: self.url_link,
-        entrez_link: self.entrez_link }
-    end
-    
-    def all
-      { accession: self.accession,
-        sample_detail: self.sample_detail,
-        organism_information: self.organism_information,
-        sample_links: self.sample_links }
     end
   end
   
