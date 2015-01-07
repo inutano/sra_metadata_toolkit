@@ -89,7 +89,8 @@ module SRAMetadataParser
           sample_accession:   experiment.css("SAMPLE_DESCRIPTOR").first.attr("accession").to_s,
           sample_refname:     experiment.css("SAMPLE_DESCRIPTOR").first.attr("refname").to_s,
           
-          library_description:    { library_name:                  experiment.css("LIBRARY_NAME").inner_text,
+          library_description:    { 
+                                    library_name:                  experiment.css("LIBRARY_NAME").inner_text,
                                     library_strategy:              experiment.css("LIBRARY_STRATEGY").inner_text,
                                     library_source:                experiment.css("LIBRARY_SOURCE").inner_text,
                                     library_selection:             experiment.css("LIBRARY_SELECTION").inner_text,
@@ -100,7 +101,8 @@ module SRAMetadataParser
                                     library_construction_protocol: experiment.css("LIBRARY_CONSTRUCTION_PROTOCOL").inner_text,
                                   },
           
-          platform_information:   { platform:         experiment.css("PLATFORM").first.children[1].name,
+          platform_information:   { 
+                                    platform:         experiment.css("PLATFORM").first.children[1].name,
                                     instrument_model: experiment.css("INSTRUMENT_MODEL").inner_text,
                                     cycle_sequence:   experiment.css("CYCLE_SEQUENCE").inner_text,
                                     cycle_count:      experiment.css("CYCLE_COUNT").inner_text,
@@ -109,12 +111,15 @@ module SRAMetadataParser
                                     key_sequence:     experiment.css("KEY_SEQUENCE").inner_text,
                                   },
           
-          processing_information: { base_calls:     { sequence_space: experiment.css("SEQUENCE_SPACE").inner_text,
+          processing_information: { 
+                                    base_calls:     { 
+                                                      sequence_space: experiment.css("SEQUENCE_SPACE").inner_text,
                                                       base_caller:    experiment.css("BASE_CALLER").inner_text,
                                                     },
                                     
                                     quality_scores: experiment.css("QUALITY_SCORES").map{|node|
-                                                      { quality_type:    node.attr("qtype").to_s,
+                                                      { 
+                                                        quality_type:    node.attr("qtype").to_s,
                                                         quality_scorer:  node.css("QUALITY_SCORER").inner_text,
                                                         number_of_level: node.css("NUMBER_OF_LEVELS").inner_text,
                                                         multiplier:      node.css("MULTIPLIER").inner_text
@@ -122,7 +127,8 @@ module SRAMetadataParser
                                                     },
                                     
                                     pipe_section:   experiment.css("PIPE_SECTION").map{|node|
-                                                      { step_index:      node.css("STEP_INDEX").inner_text,
+                                                      { 
+                                                        step_index:      node.css("STEP_INDEX").inner_text,
                                                         prev_step_index: node.css("PREV_STEP_INDEX").inner_text,
                                                         program:         node.css("PROGRAM").inner_text,
                                                         version:         node.css("VERSION").inner_text,
@@ -130,17 +136,19 @@ module SRAMetadataParser
                                                     },
                                   },
           
-          spot_information:       { number_of_reads_per_spot: experiment.css("NUMBER_OF_READS_PER_SPOT").inner_text,
-                                    spot_length:              experiment.css("SPOT_LENGTH").inner_text
+          spot_information:       { 
+                                    number_of_reads_per_spot: experiment.css("NUMBER_OF_READS_PER_SPOT").inner_text,
+                                    spot_length:              experiment.css("SPOT_LENGTH").inner_text,
                                   },
         
           read_spec:              experiment.css("READ_SPEC").map{|node|
-                                    { read_index: node.css("READ_INDEX").inner_text,
+                                    { 
+                                      read_index: node.css("READ_INDEX").inner_text,
                                       read_class: node.css("READ_CLASS").inner_text,
                                       read_type: node.css("READ_TYPE").inner_text,
                                       base_coord: node.css("BASE_COORD").inner_text,
                                     }
-                                  }
+                                  },
         }
       end
     end
@@ -160,18 +168,21 @@ module SRAMetadataParser
           title:              sample.css("TITLE").inner_text,
           sample_description: sample.css("DESCRIPTION").inner_text,
           
-          organism_information: { taxon_id:        sample.css("TAXON_ID").inner_text,
+          organism_information: { 
+                                  taxon_id:        sample.css("TAXON_ID").inner_text,
                                   common_name:     sample.css("COMMON_NAME").inner_text,
                                   scientific_name: sample.css("SCIENTIFIC_NAME").inner_text,
                                   anonymized_name: sample.css("ANONYMIZED_NAME").inner_text,
-                                  individual_name: sample.css("INDIVIDUAL_NAME").inner_text },
+                                  individual_name: sample.css("INDIVIDUAL_NAME").inner_text,
+                                },
           
-          sample_links: { url_link:   sample.css("URL_LINK").map{|node|
-                                        { 
-                                          label: node.css("LABEL").inner_text,
-                                          url:   node.css("URL").inner_text,
-                                        }
-                                      },
+          sample_links: { 
+                          url_link: sample.css("URL_LINK").map{|node|
+                                      { 
+                                        label: node.css("LABEL").inner_text,
+                                        url:   node.css("URL").inner_text,
+                                      }
+                                    },
                         
                           entrez_link: sample.css("ENTREZ_LINK").map{|node|
                                          { 
