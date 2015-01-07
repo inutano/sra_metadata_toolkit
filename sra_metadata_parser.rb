@@ -3,122 +3,68 @@
 require "nokogiri"
 require "time"
 
-module SRAMetadataParser  
+module SRAMetadataParser
+  module_function
+  def id_selector(type, xml, id)
+    # return an array of nokogiri objects
+    dataset = Nokogiri::XML(open(xml)).css(type)
+    case id
+    when :all
+      dataset
+    else
+      dataset.select{|n| n.attr("accession") =~ /#{id}/ }
+    end
+  end
+  
   class Submission
-    def initialize(id, xml)
-      @submission = Nokogiri::XML(open(xml)).css("SUBMISSION").select{|n| n.attr("accession") == id }.first
-      raise NameError, "submission id not found" unless @submission
+    def initialize(xml, id: :all)
+      @submissionset = SRAMetadataParser::id_selector("SUBMISSION", xml, id)
+      raise NameError, "ID not found" if @submission == []
     end
     
-    def alias
-      @submission.attr("alias").to_s
-    end
-    
-    def accession
-      @submission.attr("accession").to_s
-    end
-  
-    def submission_comment
-      @submission.attr("submission_comment").to_s
-    end
-    
-    def center_name
-      @submission.attr("center_name").to_s
-    end
-    
-    def lab_name
-      @submission.attr("lab_name").to_s
-    end
-    
-    def submission_date
-      date = @submission.attr("submission_date").to_s
-      if date =~ /^\d/
-        Time.parse(date)
+    def parse
+      @submissionset.map do |submission|
+        { alias:              submission.attr("alias").to_s,
+          accession:          submission.attr("accession").to_s,
+          submission_comment: submission.attr("submission_comment").to_s,
+          center_name:        submission.attr("center_name").to_s,
+          lab_name:           submission.attr("lab_name").to_s,
+          submission_date:    submission.attr("submission_date").to_s }
       end
-    end
-  
-    def all
-      { accession: self.accession,
-        submission_comment: self.submission_comment,
-        center_name: self.center_name,
-        lab_name: self.lab_name,
-        submission_date: self.submission_date,
-        alias: self.alias }
     end
   end
   
   class Study
-    def initialize(id, xml)
-      @study = Nokogiri::XML(open(xml)).css("STUDY").select{|n| n.attr("accession") == id }.first
-      raise NameError, "study id not found" unless @study
+    def initialize(xml, id: :all)
+      @studyset = SRAMetadataParser::id_selector("STUDY", xml, id)
+      raise NameError, "ID not found" if @studyset == []
     end
     
-    def alias
-      @study.attr("alias").to_s
-    end
-    
-    def accession
-      @study.attr("accession").to_s
-    end
-
-    def center_name
-      @study.attr("center_name").to_s
-    end
-    
-    def center_project_name
-      @study.css("CENTER_PROJECT_NAME").inner_text
-    end
-    
-    def study_title
-      @study.css("STUDY_TITLE").inner_text
-    end
-    
-    def study_type
-      @study.css("STUDY_TYPE").attr("existing_study_type").to_s
-    end
-    
-    def study_abstract
-      @study.css("STUDY_ABSTRACT").inner_text
-    end
-    
-    def study_description
-      @study.css("STUDY_DESCRIPTION").inner_text
-    end
-    
-    def url_link
-      @study.css("URL_LINK").map do |node|
-        { label: node.css("LABEL").inner_text,
-          url: node.css("URL").inner_text }
+    def parse
+      @studyset.map do |study|
+        { accession:           study.attr("accession").to_s,
+          alias:               study.attr("alias").to_s,
+          center_name:         study.attr("center_name").to_s,
+          center_project_name: study.css("CENTER_PROJECT_NAME").inner_text,
+          study_title:         study.css("STUDY_TITLE").inner_text,
+          study_type:          study.css("STUDY_TYPE").attr("existing_study_type").to_s,
+          study_abstract:      study.css("STUDY_ABSTRACT").inner_text,
+          study_description:   study.css("STUDY_DESCRIPTION").inner_text,
+          
+          url_link:            study.css("URL_LINK").map{|node|
+                                 { label: node.css("LABEL").inner_text,
+                                   url:   node.css("URL").inner_text }},
+          
+          entrez_link:         study.css("ENTREZ_LINK").map{|node|
+                                 { db: node.css("DB").inner_text,
+                                   id: node.css("ID").inner_text }},
+          
+          related_link:        study.css("RELATED_LINK").map{|node|
+                                 { db:    node.css("DB").inner_text,
+                                   id:    node.css("ID").inner_text,
+                                   label: node.css("LABEL").inner_text }}
+        }
       end
-    end
-    
-    def entrez_link
-      @study.css("ENTREZ_LINK").map do |node|
-        { db: node.css("DB").inner_text,
-          id: node.css("ID").inner_text }
-      end
-    end
-    
-    def related_link
-      @study.css("RELATED_LINK").map do |node|
-        { db: node.css("DB").inner_text,
-          id: node.css("ID").inner_text,
-          label: node.css("LABEL").inner_text }
-      end
-    end
-    
-    def all
-      { accession: self.accession,
-        alias: self.alias,
-        center_name: self.center_name,
-        center_project_name: self.center_project_name,
-        study_title: self.study_title,
-        study_type: self.study_type,
-        study_abstract: self.study_abstract,
-        study_description: self.study_description,
-        url_link: self.url_link,
-        entrez_link: self.entrez_link,
-        related_link: self.related_link }
     end
   end
   
