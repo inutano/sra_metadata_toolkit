@@ -38,7 +38,8 @@ module SRAMetadataParser
     end
   
     def all
-      { submission_comment: self.submission_comment,
+      { accession: self.accession,
+        submission_comment: self.submission_comment,
         center_name: self.center_name,
         lab_name: self.lab_name,
         submission_date: self.submission_date,
@@ -107,7 +108,8 @@ module SRAMetadataParser
     end
     
     def all
-      { alias: self.alias,
+      { accession: self.accession,
+        alias: self.alias,
         center_name: self.center_name,
         center_project_name: self.center_project_name,
         study_title: self.study_title,
@@ -306,7 +308,8 @@ module SRAMetadataParser
     end
     
     def all
-      { experiment_detail: self.experiment_detail,
+      { accession: self.accession,
+        experiment_detail: self.experiment_detail,
         library_description: self.library_description,
         platform_information: self.platform_information,
         spot_information: self.spot_information,
@@ -392,7 +395,8 @@ module SRAMetadataParser
     end
     
     def all
-      { sample_detail: self.sample_detail,
+      { accession: self.accession,
+        sample_detail: self.sample_detail,
         organism_information: self.organism_information,
         sample_links: self.sample_links }
     end
@@ -489,7 +493,8 @@ module SRAMetadataParser
     end
     
     def all
-      { run_detail: self.run_detail,
+      { accession: self.accession,
+        run_detail: self.run_detail,
         pipeline: self.pipeline,
         spot_information: self.spot_information,
         run_attr: self.run_attr }
