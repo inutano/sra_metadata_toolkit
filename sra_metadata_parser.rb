@@ -187,101 +187,53 @@ module SRAMetadataParser
   end
   
   class Run
-    def initialize(id, xml)
-      @run = Nokogiri::XML(open(xml)).css("RUN").select{|n| n.attr("accession").to_s == id }.first
-      raise NameError, "run id not found" unless @run
+    def initialize(xml, id: :all)
+      @runset = SRAMetadataParser::id_selector("RUN", xml, id)
+      raise NameError, "ID not found" if @runset == []
     end
     
-    # RUN DETAIL
-    def alias
-      @run.attr("alias").to_s
-    end
-
-    def accession
-      @run.attr("accession").to_s
-    end
-    
-    def center_name
-      @run.attr("center_name").to_s
-    end
-    
-    def run_date
-      date = @run.attr("run_date").to_s
-      if date =~ /^\d/ && !date.empty?
-        Time.parse(date)
+    def parse
+      @runset.map do |run|
+        { 
+          accession:         run.attr("accession").to_s,
+          alias:             run.attr("alias").to_s,
+          center_name:       run.attr("center_name").to_s,
+          run_center:        run.attr("run_center").to_s,
+          run_date:          run.attr("run_date").to_s,
+          instrument_name:   run.attr("instrument_name").to_s,
+          total_data_blocks: run.attr("total_data_blocks").to_s,
+          
+          pipeline: run.css("PIPE_SECTION").map{|node|
+                      {
+                        section_name:    node.attr("section_name").to_s,
+                        step_index:      node.css("STEP_INDEX").inner_text,
+                        prev_step_index: node.css("PREV_STEP_INDEX").inner_text,
+                        program:         node.css("PROGRAM").inner_text,
+                        version:         node.css("VERSION").inner_text,
+                      }
+                    },
+          
+          spot_information: { 
+                              number_of_reads_per_spot: run.css("NUMBER_OF_READS_PER_SPOT").inner_text,
+                              spot_length:              run.css("SPOT_LENGTH").inner_text,
+                              read_spec:                run.css("READ_SPEC").map{|node|
+                                                          { 
+                                                            read_index: node.css("READ_INDEX").inner_text,
+                                                            read_class: node.css("READ_CLASS").inner_text,
+                                                            read_type: node.css("READ_TYPE").inner_text,
+                                                            base_coord: node.css("BASE_COORD").inner_text,
+                                                          }
+                                                        },
+                            },
+          
+          run_attr: run.css("RUN_ATTRIBUTE").map{|node|
+            {
+              tag:   node.css("TAG").inner_text,
+              value: node.css("VALUE").inner_text,
+            }
+          }
+        }
       end
-    end
-    
-    def instrument_name
-      @run.attr("instrument_name").to_s
-    end
-    
-    def total_data_blocks
-      @run.attr("total_data_blocks").to_s
-    end
-      
-    def run_center
-      @run.attr("run_center").to_s
-    end
-    
-    def run_detail
-      { alias: self.alias,
-        center_name: self.center_name,
-        run_date: self.run_date,
-        instrument_name: self.instrument_name,
-        total_data_blocks: self.total_data_blocks,
-        run_center: self.run_center }
-    end
-    
-    # PIPELINE
-    def pipeline
-      @run.css("PIPE_SECTION").map do |node|
-        { section_name: node.attr("secrion_name").to_s,
-          step_index: node.css("STEP_INDEX").inner_text,
-          prev_step_index: node.css("PREV_STEP_INDEX").inner_text,
-          program: node.css("PROGRAM").inner_text,
-          version: node.css("VERSION").inner_text }
-      end
-    end
-    
-    # SPOT INFORMATION
-    def number_of_reads_per_spot
-      @run.css("NUMBER_OF_READS_PER_SPOT").inner_text
-    end
-    
-    def spot_length
-      @run.css("SPOT_LENGTH").inner_text
-    end
-    
-    def read_spec
-      @run.css("READ_SPEC").map do |node|
-        { read_index: node.css("READ_INDEX").inner_text,
-          read_class: node.css("READ_CLASS").inner_text,
-          read_type: node.css("READ_TYPE").inner_text,
-          base_coord: node.css("BASE_COORD").inner_text }
-      end
-    end
-    
-    def spot_information
-      { number_of_reads_per_spot: self.number_of_reads_per_spot,
-        spot_length: self.spot_length,
-        read_spec: self.read_spec }
-    end
-    
-    # RUN ATTRIBUTES
-    def run_attr
-      @run.css("RUN_ATTRIBUTE").map do |node|
-        { tag: node.css("TAG").inner_text,
-          value: node.css("VALUE").inner_text }
-      end
-    end
-    
-    def all
-      { accession: self.accession,
-        run_detail: self.run_detail,
-        pipeline: self.pipeline,
-        spot_information: self.spot_information,
-        run_attr: self.run_attr }
     end
   end
 end
