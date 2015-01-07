@@ -24,12 +24,14 @@ module SRAMetadataParser
     
     def parse
       @submissionset.map do |submission|
-        { alias:              submission.attr("alias").to_s,
+        { 
+          alias:              submission.attr("alias").to_s,
           accession:          submission.attr("accession").to_s,
           submission_comment: submission.attr("submission_comment").to_s,
           center_name:        submission.attr("center_name").to_s,
           lab_name:           submission.attr("lab_name").to_s,
-          submission_date:    submission.attr("submission_date").to_s }
+          submission_date:    submission.attr("submission_date").to_s
+        }
       end
     end
   end
@@ -42,7 +44,8 @@ module SRAMetadataParser
     
     def parse
       @studyset.map do |study|
-        { accession:           study.attr("accession").to_s,
+        { 
+          accession:           study.attr("accession").to_s,
           alias:               study.attr("alias").to_s,
           center_name:         study.attr("center_name").to_s,
           center_project_name: study.css("CENTER_PROJECT_NAME").inner_text,
@@ -53,213 +56,94 @@ module SRAMetadataParser
           
           url_link:            study.css("URL_LINK").map{|node|
                                  { label: node.css("LABEL").inner_text,
-                                   url:   node.css("URL").inner_text }},
+                                   url:   node.css("URL").inner_text    }},
           
           entrez_link:         study.css("ENTREZ_LINK").map{|node|
                                  { db: node.css("DB").inner_text,
-                                   id: node.css("ID").inner_text }},
+                                   id: node.css("ID").inner_text  }},
           
           related_link:        study.css("RELATED_LINK").map{|node|
                                  { db:    node.css("DB").inner_text,
                                    id:    node.css("ID").inner_text,
-                                   label: node.css("LABEL").inner_text }}
+                                   label: node.css("LABEL").inner_text }},
         }
       end
     end
   end
   
   class Experiment
-    def initialize(id, xml)
-      @exp = Nokogiri::XML(open(xml)).css("EXPERIMENT").select{|n| n.attr("accession") == id }.first
-      raise NameError, "experiment id not found" unless @exp
+    def initialize(xml, id: :all)
+      @experimentset = SRAMetadataParser::id_selector("EXPERIMENT", xml, id)
+      raise NameError, "ID not found" if @studyset == []
     end
     
-    # EXPERIMENT DETAIL
-    def alias
-      @exp.attr("alias").to_s
-    end
-    
-    def accession
-      @exp.attr("accession").to_s
-    end
-
-    def center_name
-      @exp.attr("center_name").to_s
-    end
-    
-    def title
-      @exp.css("TITLE").inner_text
-    end
-    
-    def study_accession
-      @exp.css("STUDY_REF").attr("accession").to_s
-    end
-    
-    def study_refname
-      @exp.css("STUDY_REF").attr("refname").to_s
-    end
-    
-    def design_description
-      @exp.css("DESIGN_DESCRIPTION").inner_text
-    end
-    
-    def sample_accession
-      @exp.css("SAMPLE_DESCRIPTOR").first.attr("accession").to_s
-    end
-    
-    def sample_refname
-      @exp.css("SAMPLE_DESCRIPTOR").first.attr("refname").to_s
-    end
-    
-    def experiment_detail
-      { center_name: self.center_name,
-        title: self.title,
-        study_accession: self.study_accession,
-        study_refname: self.study_refname,
-        design_description: self.design_description,
-        sample_accession: self.sample_accession,
-        sample_refname: self.sample_refname }
-    end
-    
-    # LIBRARY DESCRIPTION
-    def library_name
-      @exp.css("LIBRARY_NAME").inner_text
-    end
-    
-    def library_strategy
-      @exp.css("LIBRARY_STRATEGY").inner_text
-    end
-    
-    def library_source
-      @exp.css("LIBRARY_SOURCE").inner_text
-    end
-    
-    def library_selection
-      @exp.css("LIBRARY_SELECTION").inner_text
-    end
-    
-    def library_layout
-      @exp.css("LIBRARY_LAYOUT").first.children[1].name
-    end
-    
-    def library_orientation
-      @exp.css("LIBRARY_LAYOUT").first.children[1].attr("ORIENTATION").to_s
-    end
-
-    def library_nominal_length
-      @exp.css("LIBRARY_LAYOUT").first.children[1].attr("NOMINAL_LENGTH").to_s
-    end
-
-    def library_nominal_sdev
-      @exp.css("LIBRARY_LAYOUT").first.children[1].attr("NOMINAL_SDEV").to_s
-    end
-    
-    def library_construction_protocol
-      @exp.css("LIBRARY_CONSTRUCTION_PROTOCOL").inner_text
-    end
-    
-    def library_description
-      { library_name: self.library_name,
-        library_strategy: self.library_strategy,
-        library_source: self.library_source,
-        library_selection: self.library_selection,
-        library_layout: self.library_layout,
-        library_orientation: self.library_orientation,
-        library_nominal_length: self.library_nominal_length,
-        library_nominal_sdev: self.library_nominal_sdev,
-        library_construction_protocol: self.library_construction_protocol }
-    end
-  
-    # PLATFORM
-    def platform
-      @exp.css("PLATFORM").first.children[1].name
-    end
-    
-    def instrument_model
-      @exp.css("INSTRUMENT_MODEL").inner_text
-    end
-    
-    def cycle_sequence
-      @exp.css("CYCLE_SEQUENCE").inner_text
-    end
-    
-    def cycle_count
-      @exp.css("CYCLE_COUNT").inner_text
-    end
-    
-    def flow_sequence
-      @exp.css("FLOW_SEQUENCE").inner_text
-    end
-    
-    def flow_count
-      @exp.css("FLOW_COUNT").inner_text
-    end
-    
-    def key_sequence
-      @exp.css("KEY_SEQUENCE").inner_text
-    end
-    
-    def platform_information
-      { platform: self.platform,
-        instrument_model: self.instrument_model,
-        cycle_sequence: self.cycle_sequence,
-        cycle_count: self.cycle_count,
-        flow_sequence: self.flow_sequence,
-        flow_count: self.flow_count,
-        key_sequence: self.key_sequence }
-    end
-    
-    # PROCESSING
-    def base_calls
-      { sequence_space: @exp.css("SEQUENCE_SPACE").inner_text,
-        base_caller: @exp.css("BASE_CALLER").inner_text }
-    end
-    
-    def quality_scores
-      @exp.css("QUALITY_SCORES").map do |node|
-        { quality_type: node.attr("qtype").to_s,
-          quality_scorer: node.css("QUALITY_SCORER").inner_text,
-          number_of_level: node.css("NUMBER_OF_LEVELS").inner_text,
-          multiplier: node.css("MULTIPLIER").inner_text }
+    def parse
+      @experimentset.map do |experiment|
+        { 
+          accession:          experiment.attr("accession").to_s,
+          alias:              experiment.attr("alias").to_s,
+          center_name:        experiment.attr("center_name").to_s,
+          title:              experiment.css("TITLE").inner_text,
+          study_accession:    experiment.css("STUDY_REF").attr("accession").to_s,
+          study_refname:      experiment.css("STUDY_REF").attr("refname").to_s,
+          design_description: experiment.css("DESIGN_DESCRIPTION").inner_text,
+          sample_accession:   experiment.css("SAMPLE_DESCRIPTOR").first.attr("accession").to_s,
+          sample_refname:     experiment.css("SAMPLE_DESCRIPTOR").first.attr("refname").to_s,
+          
+          library_description:    { library_name:                  experiment.css("LIBRARY_NAME").inner_text,
+                                    library_strategy:              experiment.css("LIBRARY_STRATEGY").inner_text,
+                                    library_source:                experiment.css("LIBRARY_SOURCE").inner_text,
+                                    library_selection:             experiment.css("LIBRARY_SELECTION").inner_text,
+                                    library_layout:                experiment.css("LIBRARY_LAYOUT").first.children[1].name,
+                                    library_orientation:           experiment.css("LIBRARY_LAYOUT").first.children[1].attr("ORIENTATION").to_s,
+                                    library_nominal_length:        experiment.css("LIBRARY_LAYOUT").first.children[1].attr("NOMINAL_LENGTH").to_s,
+                                    library_nominal_sdev:          experiment.css("LIBRARY_LAYOUT").first.children[1].attr("NOMINAL_SDEV").to_s,
+                                    library_construction_protocol: experiment.css("LIBRARY_CONSTRUCTION_PROTOCOL").inner_text,
+                                  },
+          
+          platform_information:   { platform:         experiment.css("PLATFORM").first.children[1].name,
+                                    instrument_model: experiment.css("INSTRUMENT_MODEL").inner_text,
+                                    cycle_sequence:   experiment.css("CYCLE_SEQUENCE").inner_text,
+                                    cycle_count:      experiment.css("CYCLE_COUNT").inner_text,
+                                    flow_sequence:    experiment.css("FLOW_SEQUENCE").inner_text,
+                                    flow_count:       experiment.css("FLOW_COUNT").inner_text,
+                                    key_sequence:     experiment.css("KEY_SEQUENCE").inner_text,
+                                  },
+          
+          processing_information: { base_calls:     { sequence_space: experiment.css("SEQUENCE_SPACE").inner_text,
+                                                      base_caller:    experiment.css("BASE_CALLER").inner_text,
+                                                    },
+                                    
+                                    quality_scores: experiment.css("QUALITY_SCORES").map{|node|
+                                                      { quality_type:    node.attr("qtype").to_s,
+                                                        quality_scorer:  node.css("QUALITY_SCORER").inner_text,
+                                                        number_of_level: node.css("NUMBER_OF_LEVELS").inner_text,
+                                                        multiplier:      node.css("MULTIPLIER").inner_text
+                                                      }
+                                                    },
+                                    
+                                    pipe_section:   experiment.css("PIPE_SECTION").map{|node|
+                                                      { step_index:      node.css("STEP_INDEX").inner_text,
+                                                        prev_step_index: node.css("PREV_STEP_INDEX").inner_text,
+                                                        program:         node.css("PROGRAM").inner_text,
+                                                        version:         node.css("VERSION").inner_text,
+                                                      }
+                                                    },
+                                  },
+          
+          spot_information:       { number_of_reads_per_spot: experiment.css("NUMBER_OF_READS_PER_SPOT").inner_text,
+                                    spot_length:              experiment.css("SPOT_LENGTH").inner_text
+                                  },
+        
+          read_spec:              experiment.css("READ_SPEC").map{|node|
+                                    { read_index: node.css("READ_INDEX").inner_text,
+                                      read_class: node.css("READ_CLASS").inner_text,
+                                      read_type: node.css("READ_TYPE").inner_text,
+                                      base_coord: node.css("BASE_COORD").inner_text,
+                                    }
+                                  }
+        }
       end
-    end
-    
-    def processing_information
-      { base_calls: self.base_calls,
-        quality_scores: self.quality_scores }
-    end
-      
-    # SPOT INFORMATION
-    def number_of_reads_per_spot
-      @exp.css("NUMBER_OF_READS_PER_SPOT").inner_text
-    end
-    
-    def spot_length
-      @exp.css("SPOT_LENGTH").inner_text
-    end
-    
-    def spot_information
-      { number_of_reads_per_spot: self.number_of_reads_per_spot,
-        spot_length: self.spot_length }
-    end
-      
-    # READ SPEC
-    def read_spec
-      @exp.css("READ_SPEC").map do |node|
-        { read_index: node.css("READ_INDEX").inner_text,
-          read_class: node.css("READ_CLASS").inner_text,
-          read_type: node.css("READ_TYPE").inner_text,
-          base_coord: node.css("BASE_COORD").inner_text }
-      end
-    end
-    
-    def all
-      { accession: self.accession,
-        experiment_detail: self.experiment_detail,
-        library_description: self.library_description,
-        platform_information: self.platform_information,
-        spot_information: self.spot_information,
-        read_spec: self.read_spec }
     end
   end
   
