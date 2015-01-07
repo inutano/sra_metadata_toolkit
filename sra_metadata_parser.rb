@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
   
 require "nokogiri"
-require "time"
 
 module SRAMetadataParser
   module_function
