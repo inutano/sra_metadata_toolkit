@@ -13,6 +13,8 @@ module SRAMetadataParser
     else
       dataset.select{|n| n.attr("accession") =~ /#{id}/ }
     end
+  rescue Errno::ENOENT
+    []
   end
   
   class Submission
